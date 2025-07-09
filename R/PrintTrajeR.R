@@ -310,7 +310,9 @@ print.Trajectory.ZIP <- function(x, ...) {
     cat("Method : Likelihood \n \n")
   } else if (Obj$Method == "EM") {
     cat("Method : Expectation-maximization \n \n")
-  } else {
+  } else if (Obj$Method == "CEM") {
+    cat("Method : Classification EM \n \n")
+  }  else {
     cat("Method : Expectation-maximization with IWRLS\n \n")
   }
   esp <- 1
@@ -460,6 +462,8 @@ print.Trajectory.LOGIT <- function(x, ...) {
     cat("Method : Likelihood \n \n")
   } else if (Obj$Method == "EM") {
     cat("Method : Expectation-maximization \n \n")
+  } else if (Obj$Method == "CEM") {
+    cat("Method : Classification EM \n \n")
   } else {
     cat("Method : Expectation-maximization with IWRLS\n \n")
   }

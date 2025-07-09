@@ -53,6 +53,10 @@ EM_cpp <- function(param, ng, nx, nbeta, n, A, Y, X, ymin, ymax, TCOV, nw, iterm
     .Call('_trajeR_EM_cpp', PACKAGE = 'trajeR', param, ng, nx, nbeta, n, A, Y, X, ymin, ymax, TCOV, nw, itermax, EMIRLS, refgr)
 }
 
+CEM_cpp <- function(param, ng, nx, nbeta, n, A, Y, X, ymin, ymax, TCOV, nw, itermax, EMIRLS, refgr) {
+    .Call('_trajeR_CEM_cpp', PACKAGE = 'trajeR', param, ng, nx, nbeta, n, A, Y, X, ymin, ymax, TCOV, nw, itermax, EMIRLS, refgr)
+}
+
 EMSigmaunique_cpp <- function(param, ng, nx, nbeta, n, A, Y, X, ymin, ymax, TCOV, nw, itermax, EMIRLS, refgr) {
     .Call('_trajeR_EMSigmaunique_cpp', PACKAGE = 'trajeR', param, ng, nx, nbeta, n, A, Y, X, ymin, ymax, TCOV, nw, itermax, EMIRLS, refgr)
 }
@@ -65,8 +69,20 @@ EMCensoredSigmaunique_cpp <- function(param, ng, nx, nbeta, n, A, Y, X, ymin, ym
     .Call('_trajeR_EMCensoredSigmaunique_cpp', PACKAGE = 'trajeR', param, ng, nx, nbeta, n, A, Y, X, ymin, ymax, TCOV, nw, itermax, EMIRLS, refgr)
 }
 
+CEMCensored_cpp <- function(param, ng, nx, nbeta, n, A, Y, X, ymin, ymax, TCOV, nw, itermax, EMIRLS, refgr) {
+    .Call('_trajeR_CEMCensored_cpp', PACKAGE = 'trajeR', param, ng, nx, nbeta, n, A, Y, X, ymin, ymax, TCOV, nw, itermax, EMIRLS, refgr)
+}
+
+CEMCensoredSigmaunique_cpp <- function(param, ng, nx, nbeta, n, A, Y, X, ymin, ymax, TCOV, nw, itermax, EMIRLS, refgr) {
+    .Call('_trajeR_CEMCensoredSigmaunique_cpp', PACKAGE = 'trajeR', param, ng, nx, nbeta, n, A, Y, X, ymin, ymax, TCOV, nw, itermax, EMIRLS, refgr)
+}
+
 IEM_cpp <- function(param, ng, nx, nbeta, n, A, Y, X, ymin, ymax, TCOV, nw, refgr) {
     .Call('_trajeR_IEM_cpp', PACKAGE = 'trajeR', param, ng, nx, nbeta, n, A, Y, X, ymin, ymax, TCOV, nw, refgr)
+}
+
+ICEM_cpp <- function(param, ng, nx, nbeta, n, A, Y, X, ymin, ymax, TCOV, nw, refgr) {
+    .Call('_trajeR_ICEM_cpp', PACKAGE = 'trajeR', param, ng, nx, nbeta, n, A, Y, X, ymin, ymax, TCOV, nw, refgr)
 }
 
 piikIntern_cpp <- function(theta, i, k, ng, X) {
