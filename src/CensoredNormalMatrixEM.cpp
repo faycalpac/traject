@@ -1069,6 +1069,9 @@ mat covSigmaCNORM_cpp(int n,
   }
   return(res);
 }
+
+
+
 // Main function
 // [[Rcpp::export]]
 arma::vec IEM_cpp(NumericVector param,
@@ -1179,3 +1182,207 @@ arma::vec IEM_cpp(NumericVector param,
   
   return(sqrt(diagvec(inv(IEM))));
 }
+
+
+
+// [[Rcpp::export]]
+arma::vec ICEM_cpp(NumericVector param,
+                   int ng,
+                   int nx,
+                   IntegerVector nbeta,
+                   int n,
+                   NumericMatrix A,
+                   NumericMatrix Y,
+                   NumericMatrix X,
+                   double ymin,
+                   double ymax,
+                   Nullable<NumericMatrix> TCOV,
+                   int nw,
+                   int refgr) {
+  
+  int period = A.ncol();
+  
+  //--- reconstruction des paramètres
+  NumericVector pi(ng);
+  NumericVector beta;
+  NumericVector sigma;
+  NumericVector delta;
+  IntegerVector ndeltacum(ng);
+  IntegerVector nbetacum(nbeta.size());
+  std::partial_sum(nbeta.begin(), nbeta.end(), nbetacum.begin());
+  nbetacum.push_front(0);
+  
+  if (nx == 1) {
+    pi    = param[Range(0, ng - 1)];
+    beta  = param[Range(ng, ng + sum(nbeta) - 1)];
+    sigma = param[Range(ng + sum(nbeta), ng + sum(nbeta) + ng - 1)];
+    if (param.length() > ng * nx + sum(nbeta) + ng) {
+      delta = param[Range(ng + sum(nbeta) + ng, param.length() - 1)];
+      NumericVector deltatmp(ng);
+      deltatmp.fill(nw);
+      std::partial_sum(deltatmp.begin(), deltatmp.end(), ndeltacum.begin());
+      ndeltacum.push_front(0);
+    }
+  } else {
+    pi    = param[Range(0, ng * nx - 1)];
+    beta  = param[Range(ng * nx, ng * nx + sum(nbeta) - 1)];
+    sigma = param[Range(ng * nx + sum(nbeta), ng * nx + sum(nbeta) + ng - 1)];
+    if (param.length() > ng * nx + sum(nbeta) + ng) {
+      delta = param[Range(ng * nx + sum(nbeta) + ng, param.length() - 1)];
+      NumericVector deltatmp(ng);
+      deltatmp.fill(nw);
+      std::partial_sum(deltatmp.begin(), deltatmp.end(), ndeltacum.begin());
+      ndeltacum.push_front(0);
+    }
+  }
+  
+  NumericMatrix taux =
+    ftauxCNORM_cpp(pi, beta, sigma, ng, nbeta, n, A, Y, ymin, ymax,
+                   TCOV, delta, nw, nx, X);
+  
+  //--- C-step : on transforme 'taux' en classification dure
+  for (int i = 0; i < n; ++i) {
+    double max_val = taux(i, 0);
+    int max_k = 0;
+    for (int k = 1; k < ng; ++k) {
+      if (taux(i, k) > max_val) {
+        max_val = taux(i, k);
+        max_k = k;
+      }
+    }
+    for (int k = 0; k < ng; ++k) {
+      taux(i, k) = (k == max_k) ? 1.0 : 0.0;
+    }
+  }
+  
+  //---------- calcul de la matrice d'information (identique à IEM_cpp)
+  mat B(sum(nbeta) + ng * (nw + 1), sum(nbeta) + ng * (nw + 1));
+  B.fill(0);
+  
+  if (nw != 0) {
+    for (int i = 0; i < n; ++i) {
+      for (int t = 0; t < period; ++t) {
+        mat tmp1 = mbetasigmaCNORM_cpp(i, t, ng, nbeta, A, Y, beta, sigma,
+                                       taux, nbetacum, TCOV, period,
+                                       delta, ndeltacum, nw);
+        mat tmp2 = mbetadeltaCNORM_cpp(i, t, ng, nbeta, A, Y, beta, sigma,
+                                       taux, nbetacum, TCOV, period,
+                                       delta, ndeltacum, nw);
+        mat tmp3 = mdeltasigmaCNORM_cpp(i, t, ng, nbeta, A, Y, beta, sigma,
+                                        taux, nbetacum, TCOV, period,
+                                        delta, ndeltacum, nw);
+        B += join_cols(join_rows(mbetaCNORM_cpp(i, t, ng, nbeta, A, sigma, taux,
+                                                nbetacum, TCOV, period,
+                                                delta, ndeltacum, nw),
+                                                tmp2, tmp1),
+                                                join_rows(trans(tmp2),
+                                                          mdeltaCNORM_cpp(i, t, ng, nbeta, A, sigma, taux,
+                                                                          nbetacum, TCOV, period,
+                                                                          delta, ndeltacum, nw),
+                                                                          tmp3),
+                                                                          join_rows(trans(tmp1), trans(tmp3),
+                                                                                    msigmaCNORM_cpp(i, t, ng, nbeta, A, Y, beta,
+                                                                                                    sigma, taux, nbetacum,
+                                                                                                    TCOV, period, delta,
+                                                                                                    ndeltacum, nw)));
+      }
+    }
+  } else {
+    for (int i = 0; i < n; ++i) {
+      for (int t = 0; t < period; ++t) {
+        mat tmp1 = mbetasigmaCNORM_cpp(i, t, ng, nbeta, A, Y, beta, sigma,
+                                       taux, nbetacum, TCOV, period,
+                                       delta, ndeltacum, nw);
+        B += join_cols(
+          join_rows(mbetaCNORM_cpp(i, t, ng, nbeta, A, sigma, taux,
+                                   nbetacum, TCOV, period, delta,
+                                   ndeltacum, nw),
+                                   tmp1),
+                                   join_rows(trans(tmp1),
+                                             msigmaCNORM_cpp(i, t, ng, nbeta, A, Y, beta, sigma,
+                                                             taux, nbetacum, TCOV, period,
+                                                             delta, ndeltacum, nw)));
+      }
+    }
+  }
+  
+  B = join_rows(zeros(sum(nbeta) + ng + nw * ng, (ng - 1) * nx), B);
+  B = join_cols(
+    join_rows(mPiCNORM_cpp(n, ng, nx, pi, taux, X, refgr),
+              zeros((ng - 1) * nx, sum(nbeta) + ng + nw * ng)),
+              B);
+  
+  mat cov;
+  if (nw != 0) {
+    mat tmp1 = covPiBetaCNORM_cpp(n, ng, nx, pi, beta, sigma, delta, X,
+                                  taux, nbeta, A, Y, period, nbetacum,
+                                  TCOV, ndeltacum, nw);
+    mat tmp2 = covPiDeltaCNORM_cpp(n, ng, nx, pi, beta, sigma, delta, X,
+                                   taux, nbeta, A, Y, period, nbetacum,
+                                   TCOV, ndeltacum, nw);
+    mat tmp3 = covPiSigmaCNORM_cpp(n, ng, nx, pi, beta, sigma, delta, X,
+                                   taux, nbeta, A, Y, period, nbetacum,
+                                   TCOV, ndeltacum, nw);
+    mat tmp4 = covBetaDeltaCNORM_cpp(n, ng, nx, pi, beta, sigma, delta, X,
+                                     taux, nbeta, A, Y, period, nbetacum,
+                                     TCOV, ndeltacum, nw);
+    mat tmp5 = covBetaSigmaCNORM_cpp(n, ng, nx, pi, beta, sigma, delta, X,
+                                     taux, nbeta, A, Y, period, nbetacum,
+                                     TCOV, ndeltacum, nw);
+    mat tmp6 = covDeltaSigmaCNORM_cpp(n, ng, nx, pi, beta, sigma, delta, X,
+                                      taux, nbeta, A, Y, period, nbetacum,
+                                      TCOV, ndeltacum, nw);
+    
+    cov = join_rows(covPiCNORM_cpp(n, ng, nx, pi, X, taux),
+                    tmp1, tmp2, tmp3);
+    cov = join_cols(
+      cov,
+      join_rows(trans(tmp1),
+                covBetaCNORM_cpp(n, ng, nx, pi, beta, sigma, delta, X,
+                                 taux, nbeta, A, Y, period, nbetacum,
+                                 TCOV, ndeltacum, nw),
+                                 tmp4, tmp5));
+    cov = join_cols(
+      cov,
+      join_rows(trans(tmp2), trans(tmp4),
+                covDeltaCNORM_cpp(n, ng, nx, pi, beta, sigma, delta, X,
+                                  taux, nbeta, A, Y, period, nbetacum,
+                                  TCOV, ndeltacum, nw),
+                                  tmp6));
+    cov = join_cols(
+      cov,
+      join_rows(trans(tmp3), trans(tmp5), trans(tmp6),
+                covSigmaCNORM_cpp(n, ng, nx, pi, beta, sigma, delta, X,
+                                  taux, nbeta, A, Y, period, nbetacum,
+                                  TCOV, ndeltacum, nw)));
+  } else {
+    mat tmp1 = covPiBetaCNORM_cpp(n, ng, nx, pi, beta, sigma, delta, X,
+                                  taux, nbeta, A, Y, period, nbetacum,
+                                  TCOV, ndeltacum, nw);
+    mat tmp3 = covPiSigmaCNORM_cpp(n, ng, nx, pi, beta, sigma, delta, X,
+                                   taux, nbeta, A, Y, period, nbetacum,
+                                   TCOV, ndeltacum, nw);
+    mat tmp5 = covBetaSigmaCNORM_cpp(n, ng, nx, pi, beta, sigma, delta, X,
+                                     taux, nbeta, A, Y, period, nbetacum,
+                                     TCOV, ndeltacum, nw);
+    
+    cov = join_rows(covPiCNORM_cpp(n, ng, nx, pi, X, taux), tmp1, tmp3);
+    cov = join_cols(
+      cov,
+      join_rows(trans(tmp1),
+                covBetaCNORM_cpp(n, ng, nx, pi, beta, sigma, delta, X,
+                                 taux, nbeta, A, Y, period, nbetacum,
+                                 TCOV, ndeltacum, nw),
+                                 tmp5));
+    cov = join_cols(
+      cov,
+      join_rows(trans(tmp3), trans(tmp5),
+                covSigmaCNORM_cpp(n, ng, nx, pi, beta, sigma, delta, X,
+                                  taux, nbeta, A, Y, period, nbetacum,
+                                  TCOV, ndeltacum, nw)));
+  }
+  
+  mat IEM = -B - cov;
+  return sqrt(diagvec(inv(IEM)));
+}
+
