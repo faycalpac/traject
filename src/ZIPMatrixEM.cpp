@@ -1361,3 +1361,124 @@ arma::vec IEMZIP_cpp(NumericVector param,
   return(sqrt(diagvec(inv(IEM))));
 }
 
+// ----------------------------------------------------------------------------
+//  ICEM for ZIP
+// ----------------------------------------------------------------------------
+// [[Rcpp::export]]
+arma::vec ICEMZIP_cpp(NumericVector param,
+                      int ng,
+                      int nx,
+                      IntegerVector nbeta,
+                      IntegerVector nnu,
+                      int n,
+                      NumericMatrix A,
+                      NumericMatrix Y,
+                      NumericMatrix X,
+                      Nullable<NumericMatrix> TCOV,
+                      int nw,
+                      int refgr){
+  int period = A.ncol();
+  
+  NumericVector pi(ng);
+  NumericVector beta;
+  NumericVector nu;
+  NumericVector delta;
+  
+  IntegerVector nbetacum(nbeta.size());
+  std::partial_sum(nbeta.begin(), nbeta.end(), nbetacum.begin());
+  nbetacum.push_front(0);
+  IntegerVector nnucum(nnu.size());
+  std::partial_sum(nnu.begin(), nnu.end(), nnucum.begin());
+  nnucum.push_front(0);
+  IntegerVector ndeltacum;
+  
+  if (nx == 1){
+    pi = param[Range(0,ng-1)];
+    beta = param[Range(ng,ng+sum(nbeta)-1)];
+    nu = param[Range(ng+sum(nbeta), ng+sum(nbeta)+sum(nnu)-1)];
+    if (param.length() > ng*nx+sum(nbeta)+sum(nnu)){
+      delta = param[Range(ng+sum(nbeta)+sum(nnu), param.length()-1)];
+      NumericVector deltatmp(ng);
+      IntegerVector ndeltacumtmp(nw*ng);
+      deltatmp.fill(nw);
+      std::partial_sum(deltatmp.begin(), deltatmp.end(), ndeltacumtmp.begin());
+      ndeltacumtmp.push_front(0);
+      ndeltacum = ndeltacumtmp;
+    }
+  }else{
+    pi = param[Range(0,ng*nx-1)];
+    beta = param[Range(ng*nx,ng*nx+sum(nbeta)-1)];
+    nu = param[Range(ng*nx+sum(nbeta), ng*nx+sum(nbeta)+sum(nnu)-1)];
+    if (param.length() > ng*nx+sum(nbeta)+sum(nnu)){
+      delta = param[Range(ng*nx+sum(nbeta)+sum(nnu), param.length()-1)];
+      NumericVector deltatmp(ng);
+      IntegerVector ndeltacumtmp(nw*ng);
+      deltatmp.fill(nw);
+      std::partial_sum(deltatmp.begin(), deltatmp.end(), ndeltacumtmp.begin());
+      ndeltacumtmp.push_front(0);
+      ndeltacum = ndeltacumtmp;
+    }
+  }
+  NumericMatrix  taux = ftauxZIP_cpp(pi, beta, nu, ng, nbeta, nnu, n, A, Y, TCOV, delta, nw, nx, X);
+  for(int i=0;i<n;++i){
+    int imax=0; double vmax=taux(i,0);
+    for(int k=1;k<ng;++k){
+      if(taux(i,k)>vmax){ vmax=taux(i,k); imax=k; }
+    }
+    for(int k=0;k<ng;++k){ taux(i,k) = (k==imax)?1.0:0.0; }
+  }
+  
+  mat B(sum(nbeta)+sum(nnu)+ng*nw, sum(nbeta)+sum(nnu)+ng*nw);
+  B.fill(0);
+  if (nw != 0){
+    NumericMatrix TCOVv(TCOV.get());
+    mat tmp0 = zeros(sum(nbeta), sum(nnu));
+    mat tmp2 = zeros(sum(nw*ng), sum(nnu));
+    for (int i = 0; i < n; ++i){
+      for (int t = 0; t < period; ++t){
+        mat tmp1 = mbetadeltaZIP_cpp(i, t, ng, nbeta, A, beta,  taux, nbetacum,TCOVv, period, delta, ndeltacum, nw, nnucum, nnu, nu, pi, n, Y);
+        B += join_cols(join_rows(mbetaZIP_cpp(i, t, ng, nbeta, A, beta,  taux, nbetacum, TCOV, period, delta, ndeltacum, nw, nnucum, nnu, nu, pi, n, Y), tmp0, tmp1),
+                       join_rows(trans(tmp0), mnuZIP_cpp(i, t, ng, nbeta, A, beta,  taux, nbetacum, TCOV, period, delta, ndeltacum, nw, nnucum, nnu, nu, pi, n, Y), trans(tmp2)),
+                       join_rows(trans(tmp1), tmp2, mdeltaZIP_cpp(i, t, ng, nbeta, A, beta,  taux, nbetacum, TCOVv, period, delta, ndeltacum, nw, nnucum, nnu, nu, pi, n, Y))
+        );
+      }
+    }
+  }else{
+    mat tmp0 = zeros(sum(nbeta), sum(nnu));
+    for (int i = 0; i < n; ++i){
+      for (int t = 0; t < period; ++t){
+        B += join_cols(join_rows(mbetaZIP_cpp(i, t, ng, nbeta, A, beta,  taux,nbetacum, TCOV, period, delta, ndeltacum, nw, nnucum, nnu, nu, pi, n, Y), tmp0),
+                       join_rows(trans(tmp0), mnuZIP_cpp(i, t, ng, nbeta, A, beta,  taux, nbetacum, TCOV, period, delta, ndeltacum, nw, nnucum, nnu, nu, pi, n, Y))
+        );
+      }
+    }
+  }
+  B = join_rows(zeros(sum(nbeta)+sum(nnu)+nw*ng, (ng-1)*nx), B);
+  B = join_cols(join_rows(mPiZIP_cpp(n, ng, nx, pi, taux , X, refgr), zeros((ng-1)*nx, sum(nbeta)+sum(nnu)+nw*ng)), B);
+  
+  mat cov ;
+  if (nw != 0){
+    NumericMatrix TCOVv(TCOV.get());
+    mat tmp1 = covPiBetaZIP_cpp(ng, n, nx, nbeta, A, Y, X, period, beta, taux, nbetacum, TCOV, delta, ndeltacum, nw, pi, nnucum, nu, nnu);
+    mat tmp2 = covPiNuZIP_cpp(ng, n, nx, nbeta, A, Y, X, period, beta, taux, nbetacum, TCOV, delta, ndeltacum, nw, pi, nnucum, nu, nnu);
+    mat tmp3 = covPiDeltaZIP_cpp(ng, n, nx, nbeta, A, Y, X, period, beta, taux, nbetacum, TCOVv, delta, ndeltacum, nw, pi, nnucum, nu, nnu);
+    mat tmp4 = covBetaNuZIP_cpp(ng, n, nbeta, A, Y, period, beta, taux, nbetacum, TCOV, delta, ndeltacum, nw, pi, nnucum, nu, nnu);
+    mat tmp5 = covBetaDeltaZIP_cpp(ng, n, nbeta, A, Y, period, beta, taux, nbetacum, TCOVv, delta, ndeltacum, nw, pi, nnucum, nu, nnu);
+    mat tmp6 = covDeltaNuZIP_cpp(ng, n, nbeta, A, Y, period, beta, taux, nbetacum, TCOVv, delta, ndeltacum, nw, pi, nnucum, nu, nnu);
+    
+    cov = join_rows(covPiZIP_cpp(n, ng, nx, pi, X, taux), tmp1, tmp2, tmp3);
+    cov = join_cols(cov, join_rows(trans(tmp1), covBetaZIP_cpp(ng, n, nbeta, A, Y, period, beta, taux, nbetacum, TCOV, delta, ndeltacum, nw, pi, nnucum, nu, nnu), tmp4, tmp5));
+    cov = join_cols(cov, join_rows(trans(tmp2), trans(tmp4), covNuZIP_cpp(ng, n, nbeta, A, Y, period, beta, taux, nbetacum, TCOV, delta, ndeltacum, nw, pi, nnucum, nu, nnu), trans(tmp6)));
+    cov = join_cols(cov, join_rows(trans(tmp3), trans(tmp5), tmp6, covDeltaZIP_cpp(ng, n, nbeta, A, Y, period, beta, taux, nbetacum, TCOVv, delta, ndeltacum, nw, pi, nnucum, nu, nnu)));
+  }else{
+    mat tmp1 = covPiBetaZIP_cpp(ng, n, nx, nbeta, A, Y, X, period, beta, taux, nbetacum, TCOV, delta, ndeltacum, nw, pi, nnucum, nu, nnu);
+    mat tmp2 = covPiNuZIP_cpp(ng, n, nx, nbeta, A, Y, X, period, beta, taux, nbetacum, TCOV, delta, ndeltacum, nw, pi, nnucum, nu, nnu);
+    mat tmp3 = covBetaNuZIP_cpp(ng, n, nbeta, A, Y, period, beta, taux, nbetacum, TCOV, delta, ndeltacum, nw, pi, nnucum, nu, nnu);
+    
+    cov = join_rows(covPiZIP_cpp(n, ng, nx, pi, X, taux), tmp1, tmp2);
+    cov = join_cols(cov, join_rows(trans(tmp1), covBetaZIP_cpp(ng, n, nbeta, A, Y, period, beta, taux, nbetacum, TCOV, delta, ndeltacum, nw, pi, nnucum, nu, nnu), tmp3));
+    cov = join_cols(cov, join_rows(trans(tmp2), trans(tmp3), covNuZIP_cpp(ng, n, nbeta, A, Y, period, beta, taux, nbetacum, TCOV, delta, ndeltacum, nw, pi, nnucum, nu, nnu)));
+  }
+  mat IEM = -B - cov;
+  return sqrt(diagvec(inv(IEM)));
+}
