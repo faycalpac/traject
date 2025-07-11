@@ -372,12 +372,14 @@ trajeR.CNORM <- function(Y, A, X, TCOV, ng, nx, n, nbeta, nw, ntheta, period, de
 #' }
 
 
-trajeR.LOGIT <- function(Y, A, X, TCOV, ng, nx, n, nbeta, nw, ntheta, period, degre, theta, beta, delta, pi, Method,
+trajeR.LOGIT <- function(Y, A, X, TCOV, ng, nx, n, nbeta, nw, ntheta, period, degre,
+                         theta, beta, delta, pi, Method,
                          hessian, itermax, paraminit, EMIRLS, refgr) {
   set_tour(1)
   set_storelik(10**100)
   varcov <- NA
   theta <- theta - theta[1:nx]
+  
   if (Method == "L") {
     theta <- theta[-c(1:nx)]
     # initial value for Likelihood's method
@@ -457,7 +459,7 @@ trajeR.LOGIT <- function(Y, A, X, TCOV, ng, nx, n, nbeta, nw, ntheta, period, de
       param <- c(param[-c(1:(ng * nx))], param[1:(ng * nx)])
     }
   } else if (Method == "EMIRLS") {
-    # intial value for EM
+    # intial value for EMIRLS
     if (is.null(paraminit)) {
       if (nx == 1) {
         paraminitEM <- c(pi[1:(ng - 1)], unlist(beta), unlist(delta))
@@ -488,10 +490,43 @@ trajeR.LOGIT <- function(Y, A, X, TCOV, ng, nx, n, nbeta, nw, ntheta, period, de
     } else {
       param <- c(param[-c(1:(ng * nx))], param[1:(ng * nx)])
     }
+    
+  } else if (Method == "CEM") {                       ## CEM +
+    # --------- nouvelle branche CEM ------------
+    if (is.null(paraminit)) {                         ## CEM +
+      ## pour CEM on garde toujours theta même si nx == 1  ## CEM +
+      paraminitEM <- c(theta, unlist(beta), unlist(delta))  ## CEM +
+    } else {                                          ## CEM +
+      paraminitEM <- paraminit                        ## CEM +
+    }                                                 ## CEM +
+    param <- CEMLOGIT_cpp(                            ## CEM +
+      paraminitEM, ng, nx, n, nbeta, A, Y, X, TCOV,   ## CEM +
+      nw, itermax, EMIRLS, refgr)                     ## CEM +
+    if (hessian == TRUE) {                            ## CEM +
+      SE     <- ICEMLOGIT_cpp(                        ## CEM +
+        param, ng, nx, nbeta, n, A, Y, X, TCOV, nw, refgr) ## CEM +
+      varcov <- SE                                    ## CEM +
+      if (nx == 1) {                                  ## CEM +
+        SE <- c(SE[-c(1:(ng - 1))],                   ## CEM +
+                SE[1:(ng - 1)],                      ## CEM +
+                sqrt(sum(SE[1:(ng - 1)]**2)))        ## CEM +
+      } else {                                        ## CEM +
+        SE <- c(SE[-c(1:((ng - 1) * nx))],            ## CEM +
+                rep(0, nx),                          ## CEM +
+                SE[1:((ng - 1) * nx)])               ## CEM +
+      }                                               ## CEM +
+    } else {                                          ## CEM +
+      SE <- NA                                        ## CEM +
+    }                                                 ## CEM +
+    if (nx == 1) {                                    ## CEM +
+      param <- c(param[-c(1:ng)], param[1:ng])        ## CEM +
+    } else {                                          ## CEM +
+      param <- c(param[-c(1:(ng * nx))], param[1:(ng * nx)]) ## CEM +
+    }                                                 ## CEM +
   }
-  
-  
-  
+  # --------------------------------------------------------------------------
+  # Suite de la fonction (calculs SE, tableau, return) inchangée
+  # --------------------------------------------------------------------------
   if (hessian == TRUE) {
     if (nx == 1 & Method == "L") {
       paramtmp <- c(param[1:(length(param) - ng * nx)], exp(theta) / sum(exp(theta)))
@@ -542,9 +577,9 @@ trajeR.LOGIT <- function(Y, A, X, TCOV, ng, nx, n, nbeta, nw, ntheta, period, de
     sd = SE, tab = d, Model = "LOGIT",
     groups = ng, Names = d.names, Method = Method, Size = n,
     Likelihood = Likelihood(c(theta, beta, delta),
-      model = "LOGIT", method = Method,
-      ng = ng, nx = nx, n = n, nbeta = nbeta, nw = nw,
-      A = A, Y = Y, X = X, TCOV = TCOV
+                            model = "LOGIT", method = Method,
+                            ng = ng, nx = nx, n = n, nbeta = nbeta,
+                            nw = nw, A = A, Y = Y, X = X, TCOV = TCOV
     ),
     Time = A[1, ], degre = degre - 1,
     varcov = varcov
@@ -552,6 +587,7 @@ trajeR.LOGIT <- function(Y, A, X, TCOV, ng, nx, n, nbeta, nw, ntheta, period, de
   class(res) <- "Trajectory.LOGIT"
   return(res)
 }
+
 #################################################################################
 # find parameters for a ZIP model
 #################################################################################
@@ -689,6 +725,7 @@ trajeR.ZIP <- function(Y, A, X, TCOV, ng, nx, n, nbeta, nw, ntheta, period, degr
     }
     param <- CEMZIP_cpp(paraminitEM, ng, nx, n, nbeta, nnu, A, Y, X, TCOV, nw, itermax, EMIRLS, refgr)
     if (hessian == TRUE) {
+      
       SE <- ICEMZIP_cpp(param, ng, nx, nbeta, nnu, n, A, Y, X, TCOV, nw, refgr)
       varcov <- SE
       if (nx == 1) {
