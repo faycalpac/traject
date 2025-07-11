@@ -113,6 +113,10 @@ IEMLOGIT_cpp <- function(param, ng, nx, nbeta, n, A, Y, X, TCOV, nw, refgr) {
     .Call('_trajeR_IEMLOGIT_cpp', PACKAGE = 'trajeR', param, ng, nx, nbeta, n, A, Y, X, TCOV, nw, refgr)
 }
 
+ICEMLOGIT_cpp <- function(param, ng, nx, nbeta, n, A, Y, X, TCOV, nw, refgr) {
+    .Call('_trajeR_ICEMLOGIT_cpp', PACKAGE = 'trajeR', param, ng, nx, nbeta, n, A, Y, X, TCOV, nw, refgr)
+}
+
 gkLOGIT_cpp <- function(beta, i, k, nbeta, A, Y, TCOV, delta, nw) {
     .Call('_trajeR_gkLOGIT_cpp', PACKAGE = 'trajeR', beta, i, k, nbeta, A, Y, TCOV, delta, nw)
 }
@@ -139,6 +143,10 @@ EMLOGIT_cpp <- function(param, ng, nx, n, nbeta, A, Y, X, TCOV, nw, itermax, EMI
 
 EMLOGITIRLS_cpp <- function(param, ng, nx, n, nbeta, A, Y, X, TCOVinit, nw, itermax, EMIRLS, refgr) {
     .Call('_trajeR_EMLOGITIRLS_cpp', PACKAGE = 'trajeR', param, ng, nx, n, nbeta, A, Y, X, TCOVinit, nw, itermax, EMIRLS, refgr)
+}
+
+CEMLOGIT_cpp <- function(param, ng, nx, n, nbeta, A, Y, X, TCOV, nw, itermax, EMIRLS, refgr) {
+    .Call('_trajeR_CEMLOGIT_cpp', PACKAGE = 'trajeR', param, ng, nx, n, nbeta, A, Y, X, TCOV, nw, itermax, EMIRLS, refgr)
 }
 
 gkPois_cpp <- function(beta, i, k, nbeta, A, Y, TCOV, delta, nw) {
