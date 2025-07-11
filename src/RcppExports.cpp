@@ -1207,6 +1207,27 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// ICEMLOGIT_cpp
+arma::vec ICEMLOGIT_cpp(NumericVector param, int ng, int nx, IntegerVector nbeta, int n, NumericMatrix A, NumericMatrix Y, NumericMatrix X, Nullable<NumericMatrix> TCOV, int nw, int refgr);
+RcppExport SEXP _trajeR_ICEMLOGIT_cpp(SEXP paramSEXP, SEXP ngSEXP, SEXP nxSEXP, SEXP nbetaSEXP, SEXP nSEXP, SEXP ASEXP, SEXP YSEXP, SEXP XSEXP, SEXP TCOVSEXP, SEXP nwSEXP, SEXP refgrSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type param(paramSEXP);
+    Rcpp::traits::input_parameter< int >::type ng(ngSEXP);
+    Rcpp::traits::input_parameter< int >::type nx(nxSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type nbeta(nbetaSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type A(ASEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericMatrix> >::type TCOV(TCOVSEXP);
+    Rcpp::traits::input_parameter< int >::type nw(nwSEXP);
+    Rcpp::traits::input_parameter< int >::type refgr(refgrSEXP);
+    rcpp_result_gen = Rcpp::wrap(ICEMLOGIT_cpp(param, ng, nx, nbeta, n, A, Y, X, TCOV, nw, refgr));
+    return rcpp_result_gen;
+END_RCPP
+}
 // gkLOGIT_cpp
 double gkLOGIT_cpp(List beta, int i, int k, IntegerVector nbeta, NumericMatrix A, NumericMatrix Y, Nullable<NumericMatrix> TCOV, Nullable<List> delta, int nw);
 static SEXP _trajeR_gkLOGIT_cpp_try(SEXP betaSEXP, SEXP iSEXP, SEXP kSEXP, SEXP nbetaSEXP, SEXP ASEXP, SEXP YSEXP, SEXP TCOVSEXP, SEXP deltaSEXP, SEXP nwSEXP) {
@@ -1496,6 +1517,52 @@ RcppExport SEXP _trajeR_EMLOGITIRLS_cpp(SEXP paramSEXP, SEXP ngSEXP, SEXP nxSEXP
     {
         Rcpp::RNGScope rcpp_rngScope_gen;
         rcpp_result_gen = PROTECT(_trajeR_EMLOGITIRLS_cpp_try(paramSEXP, ngSEXP, nxSEXP, nSEXP, nbetaSEXP, ASEXP, YSEXP, XSEXP, TCOVinitSEXP, nwSEXP, itermaxSEXP, EMIRLSSEXP, refgrSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// CEMLOGIT_cpp
+NumericVector CEMLOGIT_cpp(NumericVector param, int ng, int nx, int n, IntegerVector nbeta, NumericMatrix A, NumericMatrix Y, NumericMatrix X, Nullable<NumericMatrix> TCOV, int nw, int itermax, bool EMIRLS, int refgr);
+static SEXP _trajeR_CEMLOGIT_cpp_try(SEXP paramSEXP, SEXP ngSEXP, SEXP nxSEXP, SEXP nSEXP, SEXP nbetaSEXP, SEXP ASEXP, SEXP YSEXP, SEXP XSEXP, SEXP TCOVSEXP, SEXP nwSEXP, SEXP itermaxSEXP, SEXP EMIRLSSEXP, SEXP refgrSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type param(paramSEXP);
+    Rcpp::traits::input_parameter< int >::type ng(ngSEXP);
+    Rcpp::traits::input_parameter< int >::type nx(nxSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type nbeta(nbetaSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type A(ASEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericMatrix> >::type TCOV(TCOVSEXP);
+    Rcpp::traits::input_parameter< int >::type nw(nwSEXP);
+    Rcpp::traits::input_parameter< int >::type itermax(itermaxSEXP);
+    Rcpp::traits::input_parameter< bool >::type EMIRLS(EMIRLSSEXP);
+    Rcpp::traits::input_parameter< int >::type refgr(refgrSEXP);
+    rcpp_result_gen = Rcpp::wrap(CEMLOGIT_cpp(param, ng, nx, n, nbeta, A, Y, X, TCOV, nw, itermax, EMIRLS, refgr));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _trajeR_CEMLOGIT_cpp(SEXP paramSEXP, SEXP ngSEXP, SEXP nxSEXP, SEXP nSEXP, SEXP nbetaSEXP, SEXP ASEXP, SEXP YSEXP, SEXP XSEXP, SEXP TCOVSEXP, SEXP nwSEXP, SEXP itermaxSEXP, SEXP EMIRLSSEXP, SEXP refgrSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_trajeR_CEMLOGIT_cpp_try(paramSEXP, ngSEXP, nxSEXP, nSEXP, nbetaSEXP, ASEXP, YSEXP, XSEXP, TCOVSEXP, nwSEXP, itermaxSEXP, EMIRLSSEXP, refgrSEXP));
     }
     Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
     if (rcpp_isInterrupt_gen) {
@@ -2693,6 +2760,7 @@ static int _trajeR_RcppExport_validate(const char* sig) {
         signatures.insert("double(*likelihoodEMLOGIT_cpp)(int,int,IntegerVector,NumericVector,NumericVector,NumericMatrix,NumericMatrix,Nullable<NumericMatrix>,Nullable<NumericVector>,int)");
         signatures.insert("NumericVector(*EMLOGIT_cpp)(NumericVector,int,int,int,IntegerVector,NumericMatrix,NumericMatrix,NumericMatrix,Nullable<NumericMatrix>,int,int,bool,int)");
         signatures.insert("NumericVector(*EMLOGITIRLS_cpp)(NumericVector,int,int,int,IntegerVector,NumericMatrix,NumericMatrix,NumericMatrix,Nullable<NumericMatrix>,int,int,bool,int)");
+        signatures.insert("NumericVector(*CEMLOGIT_cpp)(NumericVector,int,int,int,IntegerVector,NumericMatrix,NumericMatrix,NumericMatrix,Nullable<NumericMatrix>,int,int,bool,int)");
         signatures.insert("double(*gkPois_cpp)(List,int,int,IntegerVector,NumericMatrix,NumericMatrix,Nullable<NumericMatrix>,Nullable<List>,int)");
         signatures.insert("NumericVector(*difLbetakPois_cpp)(NumericVector,List,Nullable<List>,int,int,int,IntegerVector,int,NumericMatrix,NumericMatrix,NumericMatrix,Nullable<NumericMatrix>,int)");
         signatures.insert("NumericVector(*difLPois_cpp)(NumericVector,int,int,IntegerVector,int,NumericMatrix,NumericMatrix,NumericMatrix,Nullable<NumericMatrix>,int)");
@@ -2755,6 +2823,7 @@ RcppExport SEXP _trajeR_RcppExport_registerCCallable() {
     R_RegisterCCallable("trajeR", "_trajeR_likelihoodEMLOGIT_cpp", (DL_FUNC)_trajeR_likelihoodEMLOGIT_cpp_try);
     R_RegisterCCallable("trajeR", "_trajeR_EMLOGIT_cpp", (DL_FUNC)_trajeR_EMLOGIT_cpp_try);
     R_RegisterCCallable("trajeR", "_trajeR_EMLOGITIRLS_cpp", (DL_FUNC)_trajeR_EMLOGITIRLS_cpp_try);
+    R_RegisterCCallable("trajeR", "_trajeR_CEMLOGIT_cpp", (DL_FUNC)_trajeR_CEMLOGIT_cpp_try);
     R_RegisterCCallable("trajeR", "_trajeR_gkPois_cpp", (DL_FUNC)_trajeR_gkPois_cpp_try);
     R_RegisterCCallable("trajeR", "_trajeR_difLbetakPois_cpp", (DL_FUNC)_trajeR_difLbetakPois_cpp_try);
     R_RegisterCCallable("trajeR", "_trajeR_difLPois_cpp", (DL_FUNC)_trajeR_difLPois_cpp_try);
@@ -2812,6 +2881,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_trajeR_thethaIRLS_cpp", (DL_FUNC) &_trajeR_thethaIRLS_cpp, 6},
     {"_trajeR_findtheta_cpp", (DL_FUNC) &_trajeR_findtheta_cpp, 9},
     {"_trajeR_IEMLOGIT_cpp", (DL_FUNC) &_trajeR_IEMLOGIT_cpp, 11},
+    {"_trajeR_ICEMLOGIT_cpp", (DL_FUNC) &_trajeR_ICEMLOGIT_cpp, 11},
     {"_trajeR_gkLOGIT_cpp", (DL_FUNC) &_trajeR_gkLOGIT_cpp, 9},
     {"_trajeR_difLLOGIT_cpp", (DL_FUNC) &_trajeR_difLLOGIT_cpp, 10},
     {"_trajeR_likelihoodLOGIT_cpp", (DL_FUNC) &_trajeR_likelihoodLOGIT_cpp, 10},
@@ -2819,6 +2889,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_trajeR_likelihoodEMLOGIT_cpp", (DL_FUNC) &_trajeR_likelihoodEMLOGIT_cpp, 10},
     {"_trajeR_EMLOGIT_cpp", (DL_FUNC) &_trajeR_EMLOGIT_cpp, 13},
     {"_trajeR_EMLOGITIRLS_cpp", (DL_FUNC) &_trajeR_EMLOGITIRLS_cpp, 13},
+    {"_trajeR_CEMLOGIT_cpp", (DL_FUNC) &_trajeR_CEMLOGIT_cpp, 13},
     {"_trajeR_gkPois_cpp", (DL_FUNC) &_trajeR_gkPois_cpp, 9},
     {"_trajeR_difLbetakPois_cpp", (DL_FUNC) &_trajeR_difLbetakPois_cpp, 13},
     {"_trajeR_difLPois_cpp", (DL_FUNC) &_trajeR_difLPois_cpp, 10},

@@ -790,3 +790,100 @@ arma::vec IEMLOGIT_cpp(NumericVector param,
 
   return(sqrt(diagvec(inv(IEM))));
 }
+
+
+// ----------------------------------------------------------------------------
+//  ICEM for LOGIT
+// ----------------------------------------------------------------------------
+// [[Rcpp::export]]
+arma::vec ICEMLOGIT_cpp(NumericVector param,
+                        int ng,
+                        int nx,
+                        IntegerVector nbeta,
+                        int n,
+                        NumericMatrix A,
+                        NumericMatrix Y,
+                        NumericMatrix X,
+                        Nullable<NumericMatrix> TCOV,
+                        int nw,
+                        int refgr){
+  int period = A.ncol();
+  
+  NumericVector pi(ng);
+  NumericVector beta;
+  NumericVector delta;
+  IntegerVector ndeltacum(ng);
+  IntegerVector nbetacum(nbeta.size());
+  std::partial_sum(nbeta.begin(), nbeta.end(), nbetacum.begin());
+  nbetacum.push_front(0);
+  if (nx == 1){
+    pi = param[Range(0,ng-1)];
+    beta = param[Range(ng,ng+sum(nbeta)-1)];
+    if (param.length() > ng*nx+sum(nbeta)){
+      delta = param[Range(ng+sum(nbeta), param.length() - 1)];
+      NumericVector deltatmp(ng);
+      deltatmp.fill(nw);
+      std::partial_sum(deltatmp.begin(), deltatmp.end(), ndeltacum.begin());
+      ndeltacum.push_front(0);
+    }
+  }else{
+    pi = param[Range(0,ng*nx-1)];
+    beta = param[Range(ng*nx,ng*nx+sum(nbeta)-1)];
+    if (param.length() > ng*nx+sum(nbeta)){
+      delta = param[Range(ng*nx+sum(nbeta), param.length() - 1)];
+      NumericVector deltatmp(ng);
+      deltatmp.fill(nw);
+      std::partial_sum(deltatmp.begin(), deltatmp.end(), ndeltacum.begin());
+      ndeltacum.push_front(0);
+    }
+  }
+  NumericMatrix  taux = ftauxLOGIT_cpp(pi, beta, ng, nbeta, n, A, Y, TCOV, delta, nw, nx, X);
+  for(int i=0;i<n;++i){
+    int imax=0; double vmax=taux(i,0);
+    for(int k=1;k<ng;++k){
+      if(taux(i,k)>vmax){ vmax=taux(i,k); imax=k; }
+    }
+    for(int k=0;k<ng;++k){ taux(i,k) = (k==imax)?1.0:0.0; }
+  }
+  
+  mat B(sum(nbeta)+ng*nw, sum(nbeta)+ng*nw);
+  B.fill(0);
+  if (nw != 0){
+    NumericMatrix TCOVv(TCOV.get());
+    for (int i = 0; i < n; ++i){
+      for (int t = 0; t < period; ++t){
+        mat tmp2 = mbetadeltaLOGIT_cpp(i, t, ng, nbeta, A, beta, taux, nbetacum, TCOVv, period, delta, ndeltacum, nw);
+        B += join_cols(join_rows(mbetaLOGIT_cpp(i, t, ng, nbeta, A, beta, taux, nbetacum, TCOVv, period, delta, ndeltacum, nw), tmp2),
+                       join_rows(trans(tmp2), mdeltaLOGIT_cpp(i, t, ng, nbeta, A, beta, taux, nbetacum, TCOVv, period, delta, ndeltacum, nw))
+        );
+      }
+    }
+  }else{
+    for (int i = 0; i < n; ++i){
+      for (int t = 0; t < period; ++t){
+        B += mbetaLOGIT_cpp(i, t, ng, nbeta, A, beta, taux, nbetacum, TCOV, period, delta, ndeltacum, nw);
+      }
+    }
+  }
+  B = join_rows(zeros(sum(nbeta)+nw*ng, (ng-1)*nx), B);
+  B = join_cols(join_rows(mPiLOGIT_cpp(n, ng, nx, pi, taux , X, refgr), zeros((ng-1)*nx, sum(nbeta)+nw*ng)), B);
+  
+  mat cov ;
+  if (nw != 0){
+    mat tmp1 = covPiBetaLOGIT_cpp(n, ng, nx, pi, beta, delta, X, taux, nbeta, A, Y, period, nbetacum, TCOV, ndeltacum, nw);
+    mat tmp2 = covPiDeltaLOGIT_cpp(n, ng, nx, pi, beta, delta, X, taux, nbeta, A, Y, period, nbetacum, TCOV, ndeltacum, nw);
+    mat tmp4 = covBetaDeltaLOGIT_cpp(n, ng, nx, pi, beta, delta, X, taux, nbeta, A, Y, period, nbetacum, TCOV, ndeltacum, nw);
+    
+    cov = join_rows(covPiLOGIT_cpp(n, ng, nx, pi, X, taux), tmp1, tmp2);
+    cov = join_cols(cov, join_rows(trans(tmp1), covBetaLOGIT_cpp(n, ng, nx, pi, beta, delta, X, taux, nbeta, A, Y, period, nbetacum, TCOV, ndeltacum, nw), tmp4));
+    cov = join_cols(cov, join_rows(trans(tmp2), trans(tmp4), covDeltaLOGIT_cpp(n, ng, nx, pi, beta, delta, X, taux, nbeta, A, Y, period, nbetacum, TCOV, ndeltacum, nw)));
+  }else{
+    mat tmp1 = covPiBetaLOGIT_cpp(n, ng, nx, pi, beta, delta, X, taux, nbeta, A, Y, period, nbetacum, TCOV, ndeltacum, nw);
+    
+    cov = join_rows(covPiLOGIT_cpp(n, ng, nx, pi, X, taux), tmp1);
+    cov = join_cols(cov, join_rows(trans(tmp1), covBetaLOGIT_cpp(n, ng, nx, pi, beta, delta, X, taux, nbeta, A, Y, period, nbetacum, TCOV, ndeltacum, nw)));
+    
+  }
+  mat IEM = -B - cov;
+  return sqrt(diagvec(inv(IEM)));
+}

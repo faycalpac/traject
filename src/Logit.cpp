@@ -985,3 +985,160 @@ NumericVector EMLOGITIRLS_cpp(NumericVector param,
   
   return(NumericVector(vparam.begin(), vparam.end()));
 }
+
+
+// ----------------------------------------------------------------------------
+// EM
+// ----------------------------------------------------------------------------
+// [[Rcpp::export]]
+NumericVector CEMLOGIT_cpp(NumericVector param,
+                          int ng,
+                          int nx,
+                          int n,
+                          IntegerVector nbeta,
+                          NumericMatrix A,
+                          NumericMatrix Y,
+                          NumericMatrix X,
+                          Nullable<NumericMatrix> TCOV,
+                          int nw,
+                          int itermax,
+                          bool EMIRLS,
+                          int refgr){
+  int period = A.ncol();
+  double prec = 0.000001;
+  NumericVector pi(ng*nx);
+  NumericVector beta;
+  NumericVector delta;
+  NumericVector nbetacum(nbeta.size());
+  std::partial_sum(nbeta.begin(), nbeta.end(), nbetacum.begin());
+  nbetacum.push_front(0);
+  if (nx == 1){
+    pi = param[Range(0,ng-2)];
+    beta = param[Range(ng-1,ng+sum(nbeta)-2)];
+    if (param.length() > ng*nx+sum(nbeta)-1){
+      delta = param[Range(ng+sum(nbeta)- 1, param.length() - 1)];
+    }
+    pi.push_back(1-sum(pi));
+  }else{
+    pi = param[Range(0,(ng-1)*nx-1)];
+    for (int i = 0; i < nx; i++){
+      pi.push_front(0);
+    }
+    beta = param[Range((ng-1)*nx,(ng-1)*nx+sum(nbeta)-1)];
+    if (param.length() > (ng-1)*nx+sum(nbeta)){
+      delta = param[Range((ng-1)*nx+sum(nbeta), param.length() - 1)];
+    }
+  }
+  rowvec vparam = join_rows(as<arma::rowvec>(pi), as<arma::rowvec>(beta), as<arma::rowvec>(delta));
+  int tour = 1;
+  while (tour < itermax){
+    if (nx == 1){
+      Rprintf("iter %3d value ", tour);
+      Rprintf("%.6f\n", -likelihoodEMLOGIT_cpp(n, ng, nbeta, beta, pi, A, Y, TCOV, delta, nw));
+    }else{
+      // a modifier
+      Rprintf("iter %3d value ", tour);
+      Rprintf("%.6f\n", -likelihoodLOGIT_cpp(NumericVector(vparam.begin() + nx, vparam.end()), ng, nx, n, nbeta, A, Y, X, TCOV, nw));
+    }
+    // E-step
+    NumericMatrix  taux = ftauxLOGIT_cpp(pi, beta, ng, nbeta, n, A, Y, TCOV, delta, nw, nx, X);
+    for(int i=0;i<n;++i){
+      int imax=0; 
+      double vmax=taux(i,0);
+      for(int k=1;k<ng;++k){
+        if(taux(i,k)>vmax){ 
+          vmax=taux(i,k); 
+          imax=k; 
+        }
+      }
+      for(int k=0;k<ng;++k){ 
+        taux(i,k) = (k==imax)?1.0:0.0; 
+      }
+    }
+    NumericVector newbeta;
+    NumericVector  newdelta;
+    Rcpp::Environment stats("package:stats");
+    Rcpp::Function optim = stats["optim"];
+    
+    vec vtmp;
+    for (int k = 0; k < ng; ++k){
+      NumericVector betak = beta[Range(nbetacum[k], nbetacum[k+1]-1)];
+      List tmp = optim(Rcpp::_["par"] = betak,
+                       Rcpp::_["fn"] = Rcpp::InternalFunction(&QbetakLOGIT_cpp),
+                       Rcpp::_["gr"] = Rcpp::InternalFunction(&difQbetakLOGIT_cpp),
+                       Rcpp::_["method"] = "BFGS",
+                       Rcpp::_["taux"] = taux,
+                       Rcpp::_["k"] = k,
+                       Rcpp::_["n"] = n,
+                       Rcpp::_["ng"] = ng,
+                       Rcpp::_["nbeta"] = nbeta,
+                       Rcpp::_["A"] = A,
+                       Rcpp::_["Y"] = Y,
+                       Rcpp::_["TCOV"] = TCOV,
+                       Rcpp::_["delta"] = delta,
+                       Rcpp::_["nw"] = nw,
+                       Rcpp::_["hessian"] =  0,
+                       Rcpp::_["control"] = List::create(Named("fnscale")=-1)
+      );
+      vtmp = join_cols(vtmp, as<arma::vec>(tmp[0]));
+    }
+    newbeta = NumericVector(vtmp.begin(), vtmp.end());
+    
+    if (nw!=0){
+      vec vtmp;
+      NumericVector ndeltacum(ng);
+      NumericVector deltatmp(ng);
+      deltatmp.fill(nw);
+      std::partial_sum(deltatmp.begin(), deltatmp.end(), ndeltacum.begin());
+      ndeltacum.push_front(0);
+      for (int k = 0; k < ng; ++k){
+        NumericVector deltak = beta[Range(ndeltacum[k], ndeltacum[k+1]-1)];
+        List tmp = optim(Rcpp::_["par"] = deltak,
+                         Rcpp::_["fn"] = Rcpp::InternalFunction(&QdeltakLOGIT_cpp),
+                         Rcpp::_["gr"] = Rcpp::InternalFunction(&difQdeltakLOGIT_cpp),
+                         Rcpp::_["method"] = "BFGS",
+                         Rcpp::_["taux"] = taux,
+                         Rcpp::_["k"] = k,
+                         Rcpp::_["n"] = n,
+                         Rcpp::_["ng"] = ng,
+                         Rcpp::_["nbeta"] = nbeta,
+                         Rcpp::_["A"] = A,
+                         Rcpp::_["Y"] = Y,
+                         Rcpp::_["TCOV"] = TCOV,
+                         Rcpp::_["beta"] = beta,
+                         Rcpp::_["nw"] = nw,
+                         Rcpp::_["hessian"] =  0,
+                         Rcpp::_["control"] = List::create(Named("fnscale")=-1)
+        );
+        vtmp = join_cols(vtmp, as<arma::vec>(tmp[0]));
+      }
+      newdelta = NumericVector(vtmp.begin(), vtmp.end());
+    }
+    // calculus of pi
+    NumericVector newpi;
+    if (nx == 1){
+      NumericVector tmp(ng);
+      for (int i = 0; i < ng; ++i){
+        tmp[i] = sum(taux(_, i));
+      }
+      newpi = tmp/n;
+    }else{
+      newpi = findtheta_cpp(pi, taux, X, n, ng, nx, period, EMIRLS, refgr);
+    }
+    // stop test
+    rowvec newparam = join_rows(as<arma::rowvec>(newpi), as<arma::rowvec>(newbeta), as<arma::rowvec>(newdelta));
+    rowvec tmp1(newparam.size());
+    tmp1.fill(prec);
+    if (all(abs(newparam-vparam)<tmp1)){
+      tour = itermax + 2;
+    }
+    ++tour;
+    vparam = newparam;
+    beta = newbeta;
+    delta = newdelta;
+    pi = newpi;
+  }
+  
+  return(NumericVector(vparam.begin(), vparam.end()));
+}
+
