@@ -185,8 +185,16 @@ EMZIPIRLS_cpp <- function(param, ng, nx, n, nbeta, nnu, A, Y, X, TCOVinit, nw, i
     .Call('_trajeR_EMZIPIRLS_cpp', PACKAGE = 'trajeR', param, ng, nx, n, nbeta, nnu, A, Y, X, TCOVinit, nw, itermax, EMIRLS, refgr)
 }
 
+CEMZIP_cpp <- function(param, ng, nx, n, nbeta, nnu, A, Y, X, TCOV, nw, itermax, EMIRLS, refgr) {
+    .Call('_trajeR_CEMZIP_cpp', PACKAGE = 'trajeR', param, ng, nx, n, nbeta, nnu, A, Y, X, TCOV, nw, itermax, EMIRLS, refgr)
+}
+
 IEMZIP_cpp <- function(param, ng, nx, nbeta, nnu, n, A, Y, X, TCOV, nw, refgr) {
     .Call('_trajeR_IEMZIP_cpp', PACKAGE = 'trajeR', param, ng, nx, nbeta, nnu, n, A, Y, X, TCOV, nw, refgr)
+}
+
+ICEMZIP_cpp <- function(param, ng, nx, nbeta, nnu, n, A, Y, X, TCOV, nw, refgr) {
+    .Call('_trajeR_ICEMZIP_cpp', PACKAGE = 'trajeR', param, ng, nx, nbeta, nnu, n, A, Y, X, TCOV, nw, refgr)
 }
 
 convtolist_cpp <- function(v, nelt) {

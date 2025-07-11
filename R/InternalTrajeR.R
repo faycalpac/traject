@@ -249,7 +249,7 @@ trajeR.CNORM <- function(Y, A, X, TCOV, ng, nx, n, nbeta, nw, ntheta, period, de
       }
     }
     if (hessian == TRUE) {
-      SE <- ICEMcpp(param, ng, nx, nbeta, n, A, Y, X, ymin, ymax, TCOV, nw, refgr)
+      SE <- ICEM_cpp(param, ng, nx, nbeta, n, A, Y, X, ymin, ymax, TCOV, nw, refgr)
       varcov <- SE
       if (nx == 1) {
         if (nw == 0) {
@@ -672,6 +672,38 @@ trajeR.ZIP <- function(Y, A, X, TCOV, ng, nx, n, nbeta, nw, ntheta, period, degr
     } else {
       param <- c(param[-c(1:(ng * nx))], param[1:(ng * nx)])
     }
+  } else if (Method == "CEM") {
+    # intial value for CEM
+    if (is.null(paraminit)) {
+      if (nx == 1) {
+        paraminitEM <- c(pi[1:(ng - 1)], unlist(beta), unlist(nu), unlist(delta))
+      } else {
+        paraminitEM <- c(rep(0, nx), theta, unlist(beta), unlist(nu), unlist(delta))
+      }
+    } else {
+      if (nx == 1) {
+        paraminitEM <- paraminit[-ng]
+      } else {
+        paraminitEM <- paraminit
+      }
+    }
+    param <- CEMZIP_cpp(paraminitEM, ng, nx, n, nbeta, nnu, A, Y, X, TCOV, nw, itermax, EMIRLS, refgr)
+    if (hessian == TRUE) {
+      SE <- ICEMZIP_cpp(param, ng, nx, nbeta, nnu, n, A, Y, X, TCOV, nw, refgr)
+      varcov <- SE
+      if (nx == 1) {
+        SE <- c(SE[-c(1:(ng - 1))], SE[1:(ng - 1)], sqrt(sum(SE[1:(ng - 1)]**2)))
+      } else {
+        SE <- c(SE[-c(1:((ng - 1) * nx))], rep(0, nx), SE[1:((ng - 1) * nx)])
+      }
+    } else {
+      SE <- NA
+    }
+    if (nx == 1) {
+      param <- c(param[-c(1:ng)], param[1:ng])
+    } else {
+      param <- c(param[-c(1:(ng * nx))], param[1:(ng * nx)])
+    }
   } else if (Method == "EMIRLS") {
     # intial value for EM
     if (is.null(paraminit)) {
@@ -1060,7 +1092,7 @@ trajeR.NL <- function(Y, A, X, TCOV, ng, nx, n, nbeta, nw, ntheta, period, degre
       SE <- c(SE[-c(1:ng)], SE[1:ng])
     }
   } else if (Method == "EM") {
-    # initial value for Likelihood's method
+    # initial value for EM method
     if (is.null(paraminit)) {
       sigma <- rep(stats::sd(Y), ng)
       if (nx == 1) {
@@ -1080,6 +1112,40 @@ trajeR.NL <- function(Y, A, X, TCOV, ng, nx, n, nbeta, nw, ntheta, period, degre
     }
     if (hessian == TRUE) {
       SE <- IEMNL(param, ng, nx, nbeta, n, A, Y, X, TCOV, nw, refgr, fct, diffct)
+      if (nx == 1) {
+        SE <- c(SE[-c(1:(ng - 1))], SE[1:(ng - 1)], sqrt(sum(SE[1:(ng - 1)]**2)))
+      } else {
+        SE <- c(SE[-c(1:((ng - 1) * nx))], rep(0, nx), SE[1:((ng - 1) * nx)])
+      }
+    } else {
+      SE <- NA
+    }
+    if (nx == 1) {
+      param <- c(param[-c(1:(ng - 1))], param[1:(ng - 1)], 1 - sum(param[1:(ng - 1)]))
+    } else {
+      param <- c(param[-c(1:(ng * nx))], param[1:(ng * nx)])
+    }
+  } else if (Method == "CEM") {
+    # initial value for CEM method
+    if (is.null(paraminit)) {
+      sigma <- rep(stats::sd(Y), ng)
+      if (nx == 1) {
+        paraminitCEM <- c(pi[1:(ng - 1)], unlist(beta), sigma)
+      } else {
+        paraminitCEM <- c(theta, unlist(beta), sigma)
+      }
+    } else {
+      if (nx == 1) {
+        paraminitCEM <- paraminit[-ng]
+      }
+    }
+    if (ssigma == FALSE) {
+      param <- CEMNL(paraminitCEM, ng, nx, nbeta, n, A, Y, X, TCOV, nw, itermax, EMIRLS, fct, diffct, nls.lmiter)
+    } else {
+      param <- CEMNLSigmaunique(paraminitCEM, ng, nx, nbeta, n, A, Y, X, TCOV, nw, itermax, EMIRLS, fct, diffct, nls.lmiter)
+    }
+    if (hessian == TRUE) {
+      SE <- ICEMNL(param, ng, nx, nbeta, n, A, Y, X, TCOV, nw, refgr, fct, diffct)
       if (nx == 1) {
         SE <- c(SE[-c(1:(ng - 1))], SE[1:(ng - 1)], sqrt(sum(SE[1:(ng - 1)]**2)))
       } else {
