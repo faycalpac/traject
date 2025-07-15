@@ -486,44 +486,51 @@ trajeR.LOGIT <- function(Y, A, X, TCOV, ng, nx, n, nbeta, nw, ntheta, period, de
       SE <- NA
     }
     if (nx == 1) {
-      param <- param <- c(param[-c(1:ng)], param[1:ng])
+      param <- c(param[-c(1:ng)], param[1:ng])
     } else {
       param <- c(param[-c(1:(ng * nx))], param[1:(ng * nx)])
     }
     
-  } else if (Method == "CEM") {                       ## CEM +
-    # --------- nouvelle branche CEM ------------
-    if (is.null(paraminit)) {                         ## CEM +
-      ## pour CEM on garde toujours theta même si nx == 1  ## CEM +
-      paraminitEM <- c(theta, unlist(beta), unlist(delta))  ## CEM +
-    } else {                                          ## CEM +
-      paraminitEM <- paraminit                        ## CEM +
-    }                                                 ## CEM +
-    param <- CEMLOGIT_cpp(                            ## CEM +
-      paraminitEM, ng, nx, n, nbeta, A, Y, X, TCOV,   ## CEM +
-      nw, itermax, EMIRLS, refgr)                     ## CEM +
-    if (hessian == TRUE) {                            ## CEM +
-      SE     <- ICEMLOGIT_cpp(                        ## CEM +
-        param, ng, nx, nbeta, n, A, Y, X, TCOV, nw, refgr) ## CEM +
-      varcov <- SE                                    ## CEM +
-      if (nx == 1) {                                  ## CEM +
-        SE <- c(SE[-c(1:(ng - 1))],                   ## CEM +
-                SE[1:(ng - 1)],                      ## CEM +
-                sqrt(sum(SE[1:(ng - 1)]**2)))        ## CEM +
-      } else {                                        ## CEM +
-        SE <- c(SE[-c(1:((ng - 1) * nx))],            ## CEM +
-                rep(0, nx),                          ## CEM +
-                SE[1:((ng - 1) * nx)])               ## CEM +
-      }                                               ## CEM +
-    } else {                                          ## CEM +
-      SE <- NA                                        ## CEM +
-    }                                                 ## CEM +
-    if (nx == 1) {                                    ## CEM +
-      param <- c(param[-c(1:ng)], param[1:ng])        ## CEM +
-    } else {                                          ## CEM +
-      param <- c(param[-c(1:(ng * nx))], param[1:(ng * nx)]) ## CEM +
-    }                                                 ## CEM +
+  } else if (Method == "CEM") {
+    # --------- BRANCHE CEM CORRIGÉE ------------
+    if (is.null(paraminit)) {
+      # CORRECTION: Gérer les cas nx == 1 et nx != 1 comme pour EM
+      if (nx == 1) {
+        paraminitEM <- c(pi[1:(ng - 1)], unlist(beta), unlist(delta))
+      } else {
+        paraminitEM <- c(theta, unlist(beta), unlist(delta))
+      }
+    } else {
+      # CORRECTION: Gérer paraminit comme pour EM
+      if (nx == 1) {
+        paraminitEM <- paraminit[-ng]
+      } else {
+        paraminitEM <- paraminit
+      }
+    }
+    
+    param <- CEMLOGIT_cpp(paraminitEM, ng, nx, n, nbeta, A, Y, X, TCOV, nw, itermax, EMIRLS, refgr)
+    
+    if (hessian == TRUE) {
+      SE <- ICEMLOGIT_cpp(param, ng, nx, nbeta, n, A, Y, X, TCOV, nw, refgr)
+      varcov <- SE
+      if (nx == 1) {
+        SE <- c(SE[-c(1:(ng - 1))], SE[1:(ng - 1)], sqrt(sum(SE[1:(ng - 1)]**2)))
+      } else {
+        SE <- c(SE[-c(1:((ng - 1) * nx))], rep(0, nx), SE[1:((ng - 1) * nx)])
+      }
+    } else {
+      SE <- NA
+    }
+    
+    # CORRECTION: Réorganiser les paramètres comme pour EM
+    if (nx == 1) {
+      param <- c(param[-c(1:ng)], param[1:ng])
+    } else {
+      param <- c(param[-c(1:(ng * nx))], param[1:(ng * nx)])
+    }
   }
+  
   # --------------------------------------------------------------------------
   # Suite de la fonction (calculs SE, tableau, return) inchangée
   # --------------------------------------------------------------------------
@@ -587,7 +594,6 @@ trajeR.LOGIT <- function(Y, A, X, TCOV, ng, nx, n, nbeta, nw, ntheta, period, de
   class(res) <- "Trajectory.LOGIT"
   return(res)
 }
-
 #################################################################################
 # find parameters for a ZIP model
 #################################################################################
