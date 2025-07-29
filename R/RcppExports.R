@@ -45,6 +45,10 @@ likelihoodEM_cpp <- function(n, ng, nbeta, beta, sigma, pi, A, Y, ymin, ymax, TC
     .Call('_trajeR_likelihoodEM_cpp', PACKAGE = 'trajeR', n, ng, nbeta, beta, sigma, pi, A, Y, ymin, ymax, TCOV, delta, nw)
 }
 
+classificationLikelihoodCNORM_cpp <- function(n, ng, nbeta, beta, sigma, pi, A, Y, ymin, ymax, TCOV, delta, nw) {
+    .Call('_trajeR_classificationLikelihoodCNORM_cpp', PACKAGE = 'trajeR', n, ng, nbeta, beta, sigma, pi, A, Y, ymin, ymax, TCOV, delta, nw)
+}
+
 ftauxCNORM_cpp <- function(pi, beta, sigma, ng, nbeta, n, A, Y, ymin, ymax, TCOV, delta, nw, nx, X) {
     .Call('_trajeR_ftauxCNORM_cpp', PACKAGE = 'trajeR', pi, beta, sigma, ng, nbeta, n, A, Y, ymin, ymax, TCOV, delta, nw, nx, X)
 }
@@ -145,6 +149,10 @@ EMLOGITIRLS_cpp <- function(param, ng, nx, n, nbeta, A, Y, X, TCOVinit, nw, iter
     .Call('_trajeR_EMLOGITIRLS_cpp', PACKAGE = 'trajeR', param, ng, nx, n, nbeta, A, Y, X, TCOVinit, nw, itermax, EMIRLS, refgr)
 }
 
+classificationLikelihoodLOGIT_cpp <- function(n, ng, nbeta, beta, pi, A, Y, TCOV, delta, nw) {
+    .Call('_trajeR_classificationLikelihoodLOGIT_cpp', PACKAGE = 'trajeR', n, ng, nbeta, beta, pi, A, Y, TCOV, delta, nw)
+}
+
 CEMLOGIT_cpp <- function(param, ng, nx, n, nbeta, A, Y, X, TCOV, nw, itermax, EMIRLS, refgr) {
     .Call('_trajeR_CEMLOGIT_cpp', PACKAGE = 'trajeR', param, ng, nx, n, nbeta, A, Y, X, TCOV, nw, itermax, EMIRLS, refgr)
 }
@@ -179,6 +187,10 @@ likelihoodZIP_cpp <- function(param, ng, nx, nbeta, nnu, n, A, Y, X, TCOV, nw) {
 
 likelihoodEMZIP_cpp <- function(n, ng, nbeta, nnu, beta, nu, pi, A, Y, TCOV, delta, nw) {
     .Call('_trajeR_likelihoodEMZIP_cpp', PACKAGE = 'trajeR', n, ng, nbeta, nnu, beta, nu, pi, A, Y, TCOV, delta, nw)
+}
+
+classificationLikelihoodZIP_cpp <- function(n, ng, nbeta, nnu, beta, nu, pi, A, Y, TCOV, delta, nw) {
+    .Call('_trajeR_classificationLikelihoodZIP_cpp', PACKAGE = 'trajeR', n, ng, nbeta, nnu, beta, nu, pi, A, Y, TCOV, delta, nw)
 }
 
 ftauxZIP_cpp <- function(pi, beta, nu, ng, nbeta, nnu, n, A, Y, TCOV, delta, nw, nx, X) {

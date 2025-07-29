@@ -65,6 +65,15 @@ Likelihood <- function(param, model, method, ng, nx, n, nbeta, nw, A, Y, X, TCOV
     if (method == "L" | nx != 1) {
       # a = likelihoodCNORM_cpp(param[-c(1:nx)], ng, nx, nbeta, n, A, Y, X, ymin, ymax, TCOV, nw)
       a <- likelihoodCNORM_cpp(param, ng, nx, nbeta, n, A, Y, X, ymin, ymax, TCOV, nw)
+    } else if (method == "CEM") {
+      a <- classificationLikelihoodCNORM_cpp(n, ng, nbeta,
+                                             beta = param[(ng + 1):(ng + sum(nbeta))],
+                                             sigma = param[(ng + 1 + sum(nbeta)):(ng + sum(nbeta) + ng)],
+                                             pi = param[1:(ng)],
+                                             A, Y, ymin, ymax, TCOV,
+                                             delta = param[(ng + sum(nbeta) + ng + 1):(ng + sum(nbeta) + ng + nw * ng)],
+                                             nw
+      )
     } else {
       a <- likelihoodEM_cpp(n, ng, nbeta,
         pi = param[1:(ng)],
@@ -78,7 +87,15 @@ Likelihood <- function(param, model, method, ng, nx, n, nbeta, nw, A, Y, X, TCOV
   } else if (model == "LOGIT") {
     if (method == "L" | nx != 1) {
       a <- likelihoodLOGIT_cpp(param[-c(1:nx)], ng, nx, n, nbeta, A, Y, X, TCOV, nw)
-    } else {
+    } else if (method == "CEM") {
+      
+      a <- classificationLikelihoodLOGIT_cpp(n, ng, nbeta,
+      beta = param[(ng):(ng + sum(nbeta) - 1)],
+      pi = c(1 - sum(param[1:(ng - 1)]), param[1:(ng - 1)]),
+      A, Y, TCOV,
+      delta = param[-c(1:(ng + sum(nbeta) - 1))], nw
+      )
+    }  else {
       a <- likelihoodEMLOGIT_cpp(n, ng, nbeta,
         beta = param[(ng):(ng + sum(nbeta) - 1)],
         pi = c(1 - sum(param[1:(ng - 1)]), param[1:(ng - 1)]),
@@ -89,6 +106,14 @@ Likelihood <- function(param, model, method, ng, nx, n, nbeta, nw, A, Y, X, TCOV
   } else if (model == "ZIP") {
     if (method == "L" | nx != 1) {
       a <- likelihoodZIP_cpp(param[-c(1:nx)], ng, nx, nbeta, nnu, n, A, Y, X, TCOV, nw)
+    } else if (method == "CEM") {
+      a <- classificationLikelihoodZIP_cpp(n, ng, nbeta, nnu,
+                                           beta = param[(ng + 1):(ng + sum(nbeta))],
+                                           nu = param[(ng + sum(nbeta) + 1):(ng + sum(nbeta) + sum(nnu))],
+                                           pi = param[1:(ng)],
+                                           A, Y, TCOV,
+                                           delta = param[-c(1:(ng + sum(nbeta) + sum(nnu)))], nw
+      )
     } else {
       a <- likelihoodEMZIP_cpp(n, ng, nbeta, nnu,
         beta = param[(ng + 1):(ng + sum(nbeta))],
@@ -119,6 +144,7 @@ Likelihood <- function(param, model, method, ng, nx, n, nbeta, nw, A, Y, X, TCOV
   } else {
     a <- LikelihoodNL(param, ng, nx, nbeta, n, A, Y, X, TCOV, fct = fct)
   }
+  
   return(a)
 }
 #################################################################################
