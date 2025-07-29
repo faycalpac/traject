@@ -687,6 +687,7 @@ NumericVector EMLOGIT_cpp(NumericVector param,
     }
     // E-step
     NumericMatrix  taux = ftauxLOGIT_cpp(pi, beta, ng, nbeta, n, A, Y, TCOV, delta, nw, nx, X);
+   
     NumericVector newbeta;
     NumericVector  newdelta;
     Rcpp::Environment stats("package:stats");
@@ -987,8 +988,61 @@ NumericVector EMLOGITIRLS_cpp(NumericVector param,
 }
 
 
+// Classification likelihood
 // ----------------------------------------------------------------------------
-// EM
+// [[Rcpp::export]]
+double classificationLikelihoodLOGIT_cpp(int n,
+                                         int ng,
+                                         IntegerVector nbeta,
+                                         NumericVector beta,
+                                         NumericVector pi,
+                                         NumericMatrix A,
+                                         NumericMatrix Y,
+                                         Nullable<NumericMatrix> TCOV,
+                                         Nullable<NumericVector> delta,
+                                         int nw){
+  //cout << "Hello World!";
+  double out = 0;
+  // create a list for beta
+  List betaL(ng);
+  int ind = 0;
+  for (int i = 0; i < ng; i++){
+    NumericVector tmp;
+    for (int j = 0; j < nbeta[i]; j++){
+      tmp.push_back(beta[ind + j]);
+    }
+    ind += nbeta[i];
+    betaL[i] = tmp;
+  }
+  // create a list for delta
+  List deltaL(ng);
+  NumericVector deltatmp(delta.get());
+  if (nw != 0){
+    int ind = 0;
+    for (int i = 0; i < ng; i++){
+      NumericVector tmp1;
+      for (int j = 0; j < nw; j++){
+        tmp1.push_back(deltatmp[ind + j]);
+      }
+      ind += nw;
+      deltaL[i] = tmp1;
+    }
+  }
+  for (int i = 0; i < n; ++i){
+    double a = 0;
+    for (int s = 0; s < ng; ++s){
+      double tmp = pi[s]*gkLOGIT_cpp(betaL, i, s, nbeta, A, Y, TCOV, deltaL, nw);
+      if (tmp > a){
+        a = tmp;
+      }
+    }
+    out += log(a);
+  }
+  return(out);
+}
+
+// ----------------------------------------------------------------------------
+// CEM
 // ----------------------------------------------------------------------------
 // [[Rcpp::export]]
 NumericVector CEMLOGIT_cpp(NumericVector param,
@@ -1034,7 +1088,7 @@ NumericVector CEMLOGIT_cpp(NumericVector param,
   while (tour < itermax){
     if (nx == 1){
       Rprintf("iter %3d value ", tour);
-      Rprintf("%.6f\n", -likelihoodEMLOGIT_cpp(n, ng, nbeta, beta, pi, A, Y, TCOV, delta, nw));
+      Rprintf("%.6f\n", -classificationLikelihoodLOGIT_cpp(n, ng, nbeta, beta, pi, A, Y, TCOV, delta, nw));
     }else{
       // a modifier
       Rprintf("iter %3d value ", tour);
@@ -1042,6 +1096,7 @@ NumericVector CEMLOGIT_cpp(NumericVector param,
     }
     // E-step
     NumericMatrix  taux = ftauxLOGIT_cpp(pi, beta, ng, nbeta, n, A, Y, TCOV, delta, nw, nx, X);
+    // C-step
     for(int i=0;i<n;++i){
       int imax=0; 
       double vmax=taux(i,0);
@@ -1055,6 +1110,11 @@ NumericVector CEMLOGIT_cpp(NumericVector param,
         taux(i,k) = (k==imax)?1.0:0.0; 
       }
     }
+    
+    
+    
+    
+    
     NumericVector newbeta;
     NumericVector  newdelta;
     Rcpp::Environment stats("package:stats");
@@ -1141,4 +1201,3 @@ NumericVector CEMLOGIT_cpp(NumericVector param,
   
   return(NumericVector(vparam.begin(), vparam.end()));
 }
-

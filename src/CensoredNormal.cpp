@@ -168,8 +168,8 @@ NumericVector difLbetakalpha_cpp(NumericVector theta,
           indmin[t] = FALSE;
           indmax[t] = FALSE;
           ind[t] = FALSE;
-          }
         }
+      }
       if (is_true(any(indmin == TRUE))){
         // construct a matrix with element of Yimui for which ind is true
         NumericMatrix mtmp = submat_cpp(YimuiA, indmin); 
@@ -241,21 +241,21 @@ NumericVector difLbetakalpha_cpp(NumericVector theta,
 // dif likelihood deltak
 // ----------------------------------------------------------------------------
 NumericVector difLdeltakalpha_cpp(NumericVector theta,
-                                 List beta,
-                                 NumericVector alpha,
-                                 Nullable<List> delta,
-                                 int k,
-                                 int ng,
-                                 int nx,
-                                 IntegerVector nbeta,
-                                 int n,
-                                 NumericMatrix A,
-                                 NumericMatrix Y,
-                                 NumericMatrix X,
-                                 double ymin,
-                                 double ymax, 
-                                 Nullable<NumericMatrix> initTCOV,
-                                 int nw){
+                                  List beta,
+                                  NumericVector alpha,
+                                  Nullable<List> delta,
+                                  int k,
+                                  int ng,
+                                  int nx,
+                                  IntegerVector nbeta,
+                                  int n,
+                                  NumericMatrix A,
+                                  NumericMatrix Y,
+                                  NumericMatrix X,
+                                  double ymin,
+                                  double ymax, 
+                                  Nullable<NumericMatrix> initTCOV,
+                                  int nw){
   NumericVector deltas;
   int period = A.ncol();
   NumericMatrix TCOV(initTCOV);
@@ -360,21 +360,21 @@ NumericVector difLdeltakalpha_cpp(NumericVector theta,
 // dif likelihood sigma with reparametrization alpha
 // ----------------------------------------------------------------------------
 double difLsigmakalpha_cpp(NumericVector theta,
-                                  List beta,
-                                  NumericVector alpha,
-                                  Nullable<List> delta,
-                                  int k,
-                                  int ng,
-                                  int nx,
-                                  IntegerVector nbeta,
-                                  int n,
-                                  NumericMatrix A,
-                                  NumericMatrix Y,
-                                  NumericMatrix X,
-                                  double ymin,
-                                  double ymax, 
-                                  Nullable<NumericMatrix> TCOV,
-                                  int nw){
+                           List beta,
+                           NumericVector alpha,
+                           Nullable<List> delta,
+                           int k,
+                           int ng,
+                           int nx,
+                           IntegerVector nbeta,
+                           int n,
+                           NumericMatrix A,
+                           NumericMatrix Y,
+                           NumericMatrix X,
+                           double ymin,
+                           double ymax, 
+                           Nullable<NumericMatrix> TCOV,
+                           int nw){
   int period = A.ncol();
   double alphas = 0;
   for (int i = 0; i < n; i++){
@@ -472,20 +472,20 @@ double difLsigmakalpha_cpp(NumericVector theta,
 // ----------------------------------------------------------------------------
 // [[Rcpp::export]]
 double difLsigmaalphaunique_cpp(NumericVector theta,
-                                       List beta,
-                                       NumericVector alpha,
-                                       Nullable<List> delta,
-                                       int ng,
-                                       int nx,
-                                       IntegerVector nbeta,
-                                       int n,
-                                       NumericMatrix A,
-                                       NumericMatrix Y,
-                                       NumericMatrix X,
-                                       double ymin,
-                                       double ymax, 
-                                       Nullable<NumericMatrix> TCOV,
-                                       int nw){
+                                List beta,
+                                NumericVector alpha,
+                                Nullable<List> delta,
+                                int ng,
+                                int nx,
+                                IntegerVector nbeta,
+                                int n,
+                                NumericMatrix A,
+                                NumericMatrix Y,
+                                NumericMatrix X,
+                                double ymin,
+                                double ymax, 
+                                Nullable<NumericMatrix> TCOV,
+                                int nw){
   int period = A.ncol();
   double a = 0;
   for (int i = 0; i < n; i++){
@@ -588,18 +588,18 @@ double difLsigmaalphaunique_cpp(NumericVector theta,
 // ----------------------------------------------------------------------------
 // [[Rcpp::export]]
 NumericVector difLalpha_cpp(NumericVector param,
-                                  int ng, 
-                                  int nx,
-                                  IntegerVector nbeta,
-                                  int n,
-                                  NumericMatrix A,
-                                  NumericMatrix Y,
-                                  NumericMatrix X,
-                                  double ymin,
-                                  double ymax, 
-                                  Nullable<NumericMatrix> TCOV,
-                                  int nw,
-                                  bool ssigma){
+                            int ng, 
+                            int nx,
+                            IntegerVector nbeta,
+                            int n,
+                            NumericMatrix A,
+                            NumericMatrix Y,
+                            NumericMatrix X,
+                            double ymin,
+                            double ymax, 
+                            Nullable<NumericMatrix> TCOV,
+                            int nw,
+                            bool ssigma){
   NumericVector out;
   NumericVector theta = param[Range(0,(ng - 1)*nx-1)];
   for (int i = 0; i < nx; i++){
@@ -663,18 +663,18 @@ NumericVector difLalpha_cpp(NumericVector param,
 // ----------------------------------------------------------------------------
 // [[Rcpp::export]]
 NumericVector difLalphaunique_cpp(NumericVector param,
-                                 int ng, 
-                                 int nx,
-                                 IntegerVector nbeta,
-                                 int n,
-                                 NumericMatrix A,
-                                 NumericMatrix Y,
-                                 NumericMatrix X,
-                                 double ymin,
-                                 double ymax, 
-                                 Nullable<NumericMatrix> TCOV,
-                                 int nw,
-                                 bool ssigma){
+                                  int ng, 
+                                  int nx,
+                                  IntegerVector nbeta,
+                                  int n,
+                                  NumericMatrix A,
+                                  NumericMatrix Y,
+                                  NumericMatrix X,
+                                  double ymin,
+                                  double ymax, 
+                                  Nullable<NumericMatrix> TCOV,
+                                  int nw,
+                                  bool ssigma){
   NumericVector out;
   NumericVector theta = param[Range(0,(ng - 1)*nx-1)];
   for (int i = 0; i < nx; i++){
@@ -712,7 +712,7 @@ NumericVector difLalphaunique_cpp(NumericVector param,
       }  
     } 
   }
-
+  
   for (int k = 1; k < ng; ++k){
     NumericVector tmp =  difLthetakalpha_cpp(theta, betaL, alpharep, deltaL, k, ng, nx, nbeta, n, A, Y, X, ymin, ymax, TCOV, nw);
     for (int i = 0; i < tmp.length(); ++i){
@@ -764,7 +764,7 @@ double Likelihoodalpha_cpp(NumericVector param,
     indtmp = (ng - 1)*nx+sum(nbeta) + 1;
   }else{
     indtmp = (ng - 1)*nx+sum(nbeta) + ng;
-    }
+  }
   NumericVector alpha = param[Range((ng - 1)*nx+sum(nbeta), indtmp - 1)];
   NumericVector alpharep;
   if (ssigma){
@@ -799,7 +799,7 @@ double Likelihoodalpha_cpp(NumericVector param,
       }  
     } 
   }
-
+  
   double out = 0;
   for (int i =0; i < n; ++i){
     double a = 0;
@@ -924,25 +924,86 @@ double likelihoodEM_cpp(int n,
   }
   return(out);
 }
+
+
+
+
+// ----------------------------------------------------------------------------
+// Classification likelihood
+// ----------------------------------------------------------------------------
+// [[Rcpp::export]]
+double classificationLikelihoodCNORM_cpp(int n,
+                                         int ng,
+                                         IntegerVector nbeta,
+                                         NumericVector beta,
+                                         NumericVector sigma,
+                                         NumericVector pi,
+                                         NumericMatrix A,
+                                         NumericMatrix Y,
+                                         double ymin,
+                                         double ymax,
+                                         Nullable<NumericMatrix> TCOV,
+                                         Nullable<NumericVector> delta,
+                                         int nw){
+  double out = 0;
+  // create a list for beta
+  List betaL(ng);
+  int ind = 0;
+  for (int i = 0; i < ng; i++){
+    NumericVector tmp;
+    for (int j = 0; j < nbeta[i]; j++){
+      tmp.push_back(beta[ind + j]);
+    }
+    ind += nbeta[i];
+    betaL[i] = tmp;
+  }
+  // create a list for delta
+  List deltaL(ng);
+  NumericVector deltatmp(delta.get());
+  if (nw != 0){
+    int ind = 0;
+    for (int i = 0; i < ng; i++){
+      NumericVector tmp1;
+      for (int j = 0; j < nw; j++){
+        tmp1.push_back(deltatmp[ind + j]);
+      }
+      ind += nw;
+      deltaL[i] = tmp1;
+    }
+  }
+  for (int i = 0; i < n; ++i){
+    double a = 0;
+    for (int s = 0; s < ng; ++s){
+      double tmp = pi[s]*gkCNORM_cpp(betaL, sigma, i+1, s+1, nbeta, A, Y, ymin, ymax, TCOV, deltaL, nw);
+      if (tmp > a){
+        a = tmp;
+      }
+    }
+    out += log(a);
+  }
+  return(out);
+}
+
+
 // ----------------------------------------------------------------------------
 // Function rate
 // ----------------------------------------------------------------------------
 // [[Rcpp::export]]
 NumericMatrix ftauxCNORM_cpp(NumericVector pi,
-                        NumericVector beta,
-                        NumericVector sigma,
-                        int ng,
-                        IntegerVector nbeta,
-                        int n,
-                        NumericMatrix A,
-                        NumericMatrix Y,
-                        double ymin,
-                        double ymax, 
-                        Nullable<NumericMatrix> TCOV,
-                        Nullable<NumericVector> delta,
-                        int nw,
-                        int nx,
-                        NumericMatrix X){
+                             NumericVector beta,
+                             NumericVector sigma,
+                             int ng,
+                             IntegerVector nbeta,
+                             int n,
+                             NumericMatrix A,
+                             NumericMatrix Y,
+                             double ymin,
+                             double ymax, 
+                             Nullable<NumericMatrix> TCOV,
+                             Nullable<NumericVector> delta,
+                             int nw,
+                             int nx,
+                             NumericMatrix X){
   // create a list for beta
   List betaL(ng);
   int ind = 0;
@@ -981,14 +1042,14 @@ NumericMatrix ftauxCNORM_cpp(NumericVector pi,
       mtmp(i, _) = 1/(1+ (s - mtmp(i, _))/mtmp(i, _));
     }
   }else{
-      for (int i = 0; i < n; ++i){
-        double s = 0;
-        for (int k = 0; k < ng; ++k){
-          mtmp(i,k) = piikIntern_cpp(pi, i, k, ng, X)*gkCNORM_cpp(betaL, sigma, i+1, k+1, nbeta, A, Y, ymin, ymax, TCOV, deltaL, nw);
-          s += mtmp(i,k);
-        } 
-        mtmp(i, _) = 1/(1+ (s - mtmp(i, _))/mtmp(i, _));
-      }
+    for (int i = 0; i < n; ++i){
+      double s = 0;
+      for (int k = 0; k < ng; ++k){
+        mtmp(i,k) = piikIntern_cpp(pi, i, k, ng, X)*gkCNORM_cpp(betaL, sigma, i+1, k+1, nbeta, A, Y, ymin, ymax, TCOV, deltaL, nw);
+        s += mtmp(i,k);
+      } 
+      mtmp(i, _) = 1/(1+ (s - mtmp(i, _))/mtmp(i, _));
+    }
   }
   return(mtmp);
 }
@@ -997,20 +1058,20 @@ NumericMatrix ftauxCNORM_cpp(NumericVector pi,
 // ----------------------------------------------------------------------------
 // [[Rcpp::export]]
 NumericVector EM_cpp(NumericVector param,
-                                  int ng, 
-                                  int nx,
-                                  IntegerVector nbeta,
-                                  int n,
-                                  NumericMatrix A,
-                                  NumericMatrix Y,
-                                  NumericMatrix X,
-                                  double ymin,
-                                  double ymax, 
-                                  Nullable<NumericMatrix> TCOV,
-                                  int nw, 
-                                  int itermax, 
-                                  bool EMIRLS,
-                                  int refgr){
+                     int ng, 
+                     int nx,
+                     IntegerVector nbeta,
+                     int n,
+                     NumericMatrix A,
+                     NumericMatrix Y,
+                     NumericMatrix X,
+                     double ymin,
+                     double ymax, 
+                     Nullable<NumericMatrix> TCOV,
+                     int nw, 
+                     int itermax, 
+                     bool EMIRLS,
+                     int refgr){
   int period = A.ncol();
   double prec = 0.000001;
   NumericVector pi(ng);
@@ -1052,19 +1113,19 @@ NumericVector EM_cpp(NumericVector param,
     
     
     // C-step (classification dure pour CEM)
-//for (int i = 0; i < n; ++i) {
-  //   double max_val = taux(i, 0);
+    //for (int i = 0; i < n; ++i) {
+    //   double max_val = taux(i, 0);
     //  int max_k = 0;
-      //for (int k = 1; k < ng; ++k) {
-        //if (taux(i, k) > max_val) {
-          //max_val = taux(i, k);
-          //max_k = k;
-        //}
-      //}
-      // mettre 1 pour le groupe choisi, 0 ailleurs
-      //for (int k = 0; k < ng; ++k) {
-        //taux(i, k) = (k == max_k) ? 1.0 : 0.0;
-      //}
+    //for (int k = 1; k < ng; ++k) {
+    //if (taux(i, k) > max_val) {
+    //max_val = taux(i, k);
+    //max_k = k;
+    //}
+    //}
+    // mettre 1 pour le groupe choisi, 0 ailleurs
+    //for (int k = 0; k < ng; ++k) {
+    //taux(i, k) = (k == max_k) ? 1.0 : 0.0;
+    //}
     //}
     
     rowvec newbeta;
@@ -1158,6 +1219,7 @@ NumericVector EM_cpp(NumericVector param,
 }
 
 
+
 // CEM not censored
 // ----------------------------------------------------------------------------
 // [[Rcpp::export]]
@@ -1206,7 +1268,7 @@ NumericVector CEM_cpp(NumericVector param,
   while (tour < itermax){
     if (nx == 1){
       Rprintf("iter %3d value ", tour);
-      Rprintf("%.6f\n", -likelihoodEM_cpp(n, ng, nbeta, beta, sigma, pi, A, Y, ymin, ymax, TCOV, delta, nw));
+      Rprintf("%.6f\n", -classificationLikelihoodCNORM_cpp(n, ng, nbeta, beta, sigma, pi, A, Y, ymin, ymax, TCOV, delta, nw));
     }else{
       Rprintf("iter %3d value ", tour);
       Rprintf("%.6f\n", -likelihoodCNORM_cpp(NumericVector(vparam.begin(), vparam.end()), ng, nx, nbeta, n, A, Y, X, ymin, ymax, TCOV, nw));
@@ -1320,20 +1382,20 @@ NumericVector CEM_cpp(NumericVector param,
 // ----------------------------------------------------------------------------
 // [[Rcpp::export]]
 NumericVector EMSigmaunique_cpp(NumericVector param,
-                     int ng, 
-                     int nx,
-                     IntegerVector nbeta,
-                     int n,
-                     NumericMatrix A,
-                     NumericMatrix Y,
-                     NumericMatrix X,
-                     double ymin,
-                     double ymax, 
-                     Nullable<NumericMatrix> TCOV,
-                     int nw, 
-                     int itermax, 
-                     bool EMIRLS,
-                     int refgr){
+                                int ng, 
+                                int nx,
+                                IntegerVector nbeta,
+                                int n,
+                                NumericMatrix A,
+                                NumericMatrix Y,
+                                NumericMatrix X,
+                                double ymin,
+                                double ymax, 
+                                Nullable<NumericMatrix> TCOV,
+                                int nw, 
+                                int itermax, 
+                                bool EMIRLS,
+                                int refgr){
   int period = A.ncol();
   double prec = 0.000001;
   NumericVector pi(ng);
@@ -1375,18 +1437,18 @@ NumericVector EMSigmaunique_cpp(NumericVector param,
     NumericMatrix  taux = ftauxCNORM_cpp(pi, beta, sigma, ng, nbeta, n, A, Y, ymin, ymax, TCOV, delta, nw, nx, X);
     // C-step (classification dure pour CEM)
     //for (int i = 0; i < n; ++i) {
-      //double max_val = taux(i, 0);
-      //int max_k = 0;
-      //for (int k = 1; k < ng; ++k) {
-        //if (taux(i, k) > max_val) {
-          //max_val = taux(i, k);
-          //max_k = k;
-        //}
-      //}
-      // mettre 1 pour le groupe choisi, 0 ailleurs
-      //for (int k = 0; k < ng; ++k) {
-        //taux(i, k) = (k == max_k) ? 1.0 : 0.0;
-      //}
+    //double max_val = taux(i, 0);
+    //int max_k = 0;
+    //for (int k = 1; k < ng; ++k) {
+    //if (taux(i, k) > max_val) {
+    //max_val = taux(i, k);
+    //max_k = k;
+    //}
+    //}
+    // mettre 1 pour le groupe choisi, 0 ailleurs
+    //for (int k = 0; k < ng; ++k) {
+    //taux(i, k) = (k == max_k) ? 1.0 : 0.0;
+    //}
     //}
     
     rowvec newbeta;
@@ -1481,20 +1543,20 @@ NumericVector EMSigmaunique_cpp(NumericVector param,
 
 
 NumericVector CEMSigmaunique_cpp(NumericVector param,
-                     int ng,
-                     int nx,
-                     IntegerVector nbeta,
-                     int n,
-                     NumericMatrix A,
-                     NumericMatrix Y,
-                     NumericMatrix X,
-                     double ymin,
-                     double ymax,
-                     Nullable<NumericMatrix> TCOV,
-                     int nw,
-                     int itermax,
-                     bool EMIRLS,
-                     int refgr){
+                                 int ng,
+                                 int nx,
+                                 IntegerVector nbeta,
+                                 int n,
+                                 NumericMatrix A,
+                                 NumericMatrix Y,
+                                 NumericMatrix X,
+                                 double ymin,
+                                 double ymax,
+                                 Nullable<NumericMatrix> TCOV,
+                                 int nw,
+                                 int itermax,
+                                 bool EMIRLS,
+                                 int refgr){
   int period = A.ncol();
   double prec = 0.000001;
   NumericVector pi(ng);
@@ -1526,7 +1588,7 @@ NumericVector CEMSigmaunique_cpp(NumericVector param,
   while (tour < itermax){
     if (nx == 1){
       Rprintf("iter %3d value ", tour);
-      Rprintf("%.6f\n", -likelihoodEM_cpp(n, ng, nbeta, beta, sigma, pi, A, Y, ymin, ymax, TCOV, delta, nw));
+      Rprintf("%.6f\n", -classificationLikelihoodCNORM_cpp(n, ng, nbeta, beta, sigma, pi, A, Y, ymin, ymax, TCOV, delta, nw));
     }else{
       Rprintf("iter %3d value ", tour);
       Rprintf("%.6f\n", -likelihoodCNORM_cpp(NumericVector(vparam.begin(), vparam.end()), ng, nx, nbeta, n, A, Y, X, ymin, ymax, TCOV, nw));
@@ -1640,20 +1702,20 @@ NumericVector CEMSigmaunique_cpp(NumericVector param,
 // ----------------------------------------------------------------------------
 // [[Rcpp::export]]
 NumericVector EMCensored_cpp(NumericVector param,
-                     int ng, 
-                     int nx,
-                     IntegerVector nbeta,
-                     int n,
-                     NumericMatrix A,
-                     NumericMatrix Y,
-                     NumericMatrix X,
-                     double ymin,
-                     double ymax, 
-                     Nullable<NumericMatrix> TCOV,
-                     int nw, 
-                     int itermax, 
-                     bool EMIRLS,
-                     int refgr){
+                             int ng, 
+                             int nx,
+                             IntegerVector nbeta,
+                             int n,
+                             NumericMatrix A,
+                             NumericMatrix Y,
+                             NumericMatrix X,
+                             double ymin,
+                             double ymax, 
+                             Nullable<NumericMatrix> TCOV,
+                             int nw, 
+                             int itermax, 
+                             bool EMIRLS,
+                             int refgr){
   int period = A.ncol();
   double prec = 0.000001;
   NumericVector pi(ng);
@@ -1695,18 +1757,18 @@ NumericVector EMCensored_cpp(NumericVector param,
     
     // C-step (classification dure pour CEM)
     //for (int i = 0; i < n; ++i) {
-      //double max_val = taux(i, 0);
-      //int max_k = 0;
-      //for (int k = 1; k < ng; ++k) {
-        //if (taux(i, k) > max_val) {
-          //max_val = taux(i, k);
-          //max_k = k;
-        //}
-      //}
-      // mettre 1 pour le groupe choisi, 0 ailleurs
-     // for (int k = 0; k < ng; ++k) {
-       // taux(i, k) = (k == max_k) ? 1.0 : 0.0;
-      //}
+    //double max_val = taux(i, 0);
+    //int max_k = 0;
+    //for (int k = 1; k < ng; ++k) {
+    //if (taux(i, k) > max_val) {
+    //max_val = taux(i, k);
+    //max_k = k;
+    //}
+    //}
+    // mettre 1 pour le groupe choisi, 0 ailleurs
+    // for (int k = 0; k < ng; ++k) {
+    // taux(i, k) = (k == max_k) ? 1.0 : 0.0;
+    //}
     //}
     
     
@@ -1870,20 +1932,20 @@ NumericVector EMCensored_cpp(NumericVector param,
 // ----------------------------------------------------------------------------
 // [[Rcpp::export]]
 NumericVector EMCensoredSigmaunique_cpp(NumericVector param,
-                             int ng, 
-                             int nx,
-                             IntegerVector nbeta,
-                             int n,
-                             NumericMatrix A,
-                             NumericMatrix Y,
-                             NumericMatrix X,
-                             double ymin,
-                             double ymax, 
-                             Nullable<NumericMatrix> TCOV,
-                             int nw, 
-                             int itermax, 
-                             bool EMIRLS,
-                             int refgr){
+                                        int ng, 
+                                        int nx,
+                                        IntegerVector nbeta,
+                                        int n,
+                                        NumericMatrix A,
+                                        NumericMatrix Y,
+                                        NumericMatrix X,
+                                        double ymin,
+                                        double ymax, 
+                                        Nullable<NumericMatrix> TCOV,
+                                        int nw, 
+                                        int itermax, 
+                                        bool EMIRLS,
+                                        int refgr){
   int period = A.ncol();
   double prec = 0.000001;
   NumericVector pi(ng);
@@ -1925,19 +1987,19 @@ NumericVector EMCensoredSigmaunique_cpp(NumericVector param,
     NumericMatrix  taux = ftauxCNORM_cpp(pi, beta, sigma, ng, nbeta, n, A, Y, ymin, ymax, TCOV, delta, nw, nx, X);
     
     // C-step (classification dure pour CEM)
-   // for (int i = 0; i < n; ++i) {
-     // double max_val = taux(i, 0);
-      //int max_k = 0;
-      //for (int k = 1; k < ng; ++k) {
-        //if (taux(i, k) > max_val) {
-          //max_val = taux(i, k);
-          //max_k = k;
-        //}
-      //}
-      // mettre 1 pour le groupe choisi, 0 ailleurs
-      //for (int k = 0; k < ng; ++k) {
-        //taux(i, k) = (k == max_k) ? 1.0 : 0.0;
-      //}
+    // for (int i = 0; i < n; ++i) {
+    // double max_val = taux(i, 0);
+    //int max_k = 0;
+    //for (int k = 1; k < ng; ++k) {
+    //if (taux(i, k) > max_val) {
+    //max_val = taux(i, k);
+    //max_k = k;
+    //}
+    //}
+    // mettre 1 pour le groupe choisi, 0 ailleurs
+    //for (int k = 0; k < ng; ++k) {
+    //taux(i, k) = (k == max_k) ? 1.0 : 0.0;
+    //}
     //}
     
     rowvec newbeta;
@@ -2138,7 +2200,7 @@ NumericVector CEMCensored_cpp(NumericVector param,
   while (tour < itermax){
     if (nx == 1){
       Rprintf("iter %3d value ", tour);
-      Rprintf("%.6f\n", -likelihoodEM_cpp(n, ng, nbeta, beta, sigma, pi, A, Y, ymin, ymax, TCOV, delta, nw));
+      Rprintf("%.6f\n", -classificationLikelihoodCNORM_cpp(n, ng, nbeta, beta, sigma, pi, A, Y, ymin, ymax, TCOV, delta, nw));
     }else{
       Rprintf("iter %3d value ", tour);
       Rprintf("%.6f\n", -likelihoodCNORM_cpp(NumericVector(vparam.begin(), vparam.end()), ng, nx, nbeta, n, A, Y, X, ymin, ymax, TCOV, nw));
@@ -2359,7 +2421,7 @@ NumericVector CEMCensoredSigmaunique_cpp(NumericVector param,
   while (tour < itermax){
     if (nx == 1){
       Rprintf("iter %3d value ", tour);
-      Rprintf("%.6f\n", -likelihoodEM_cpp(n, ng, nbeta, beta, sigma, pi, A, Y, ymin, ymax, TCOV, delta, nw));
+      Rprintf("%.6f\n", -classificationLikelihoodCNORM_cpp(n, ng, nbeta, beta, sigma, pi, A, Y, ymin, ymax, TCOV, delta, nw));
     }else{
       Rprintf("iter %3d value ", tour);
       Rprintf("%.6f\n", -likelihoodCNORM_cpp(NumericVector(vparam.begin(), vparam.end()), ng, nx, nbeta, n, A, Y, X, ymin, ymax, TCOV, nw));

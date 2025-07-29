@@ -668,6 +668,73 @@ double likelihoodEMZIP_cpp(int n,
   return(out);
 }
 
+
+// ----------------------------------------------------------------------------
+// Classification likelihood
+// ----------------------------------------------------------------------------
+// [[Rcpp::export]]
+double classificationLikelihoodZIP_cpp(int n,
+                                       int ng,
+                                       IntegerVector nbeta,
+                                       IntegerVector nnu,
+                                       NumericVector beta,
+                                       NumericVector nu,
+                                       NumericVector pi,
+                                       NumericMatrix A,
+                                       NumericMatrix Y,
+                                       Nullable<NumericMatrix> TCOV,
+                                       Nullable<NumericVector> delta,
+                                       int nw){
+  double out = 0;
+  // create a list for beta
+  List betaL(ng);
+  int ind = 0;
+  for (int i = 0; i < ng; i++){
+    NumericVector tmp;
+    for (int j = 0; j < nbeta[i]; j++){
+      tmp.push_back(beta[ind + j]);
+    }
+    ind += nbeta[i];
+    betaL[i] = tmp;
+  }
+  // create a list for nu
+  List nuL(ng);
+  ind = 0;
+  for (int i = 0; i < ng; i++){
+    NumericVector tmp;
+    for (int j = 0; j < nnu[i]; j++){
+      tmp.push_back(nu[ind + j]);
+    }
+    ind += nnu[i];
+    nuL[i] = tmp;
+  }
+  // create a list for delta
+  List deltaL(ng);
+  if (nw != 0 ) {
+    NumericVector deltatmp(delta.get());
+    int ind = 0;
+    for (int i = 0; i < ng; i++){
+      NumericVector tmp1;
+      for (int j = 0; j < nw; j++){
+        tmp1.push_back(deltatmp[ind + j]);
+      }
+      ind += nw;
+      deltaL[i] = tmp1;
+    }
+  }
+  for (int i = 0; i < n; ++i){
+    double a = 0;
+    for (int s = 0; s < ng; ++s){
+      double tmp = pi[s]*gkZIP_cpp(betaL, nuL, i, s, nbeta, nnu, A, Y, TCOV, deltaL, nw);
+      if (tmp > a){
+        a = tmp;
+      }
+    }
+    out += log(a);
+  }
+  return(out);
+}
+
 // ----------------------------------------------------------------------------
 // Function rate
 // ----------------------------------------------------------------------------
@@ -1743,7 +1810,7 @@ NumericVector CEMZIP_cpp(NumericVector param,
   while (tour < itermax){
     if (nx == 1){
       Rprintf("iter %3d value ", tour);
-      Rprintf("%.6f\n", -likelihoodEMZIP_cpp(n, ng, nbeta, nnu, beta, nu, pi, A, Y, TCOV, delta, nw));
+      Rprintf("%.6f\n", -classificationLikelihoodZIP_cpp(n, ng, nbeta, nnu, beta, nu, pi, A, Y, TCOV, delta, nw));
     }else{
       Rprintf("iter %3d value ", tour);
       Rprintf("%.6f\n", -likelihoodZIP_cpp(NumericVector(vparam.begin() + nx, vparam.end()), ng, nx, nbeta, nnu, n, A, Y, X, TCOV, nw));
