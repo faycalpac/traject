@@ -308,6 +308,7 @@ fctbeta <- function(betak, Y, A, TCOV, zk, period, n, nbetak, fct, diffct){
   tmp1 = c()
   tmp2 = c()
   tmp3 = c()
+  tmp3 = matrix(nrow = 0, ncol = nbetak)
   for (i in 1:n){
     for (t in 1:period){
       tmp1 = c(tmp1, Y[i,t])
@@ -1059,4 +1060,511 @@ IEMNL <- function(paramEM, ng, nx, nbeta, n, A, Y, X, TCOV, nw, refgr, fct, diff
   ##################################################################################
   IEM = - B - cov
   return(sqrt(diag(solve(IEM))))
+  
 }
+
+
+
+
+################################################################################
+# CEM different sigma
+################################################################################
+#' Classification EM algorithm
+#'
+#' @inheritParams EMNL
+#' @return Vector of estimated parameters
+#' @export
+CEMNL <- function(param, ng, nx, nbeta, n, A, Y, X, TCOV, nw, itermax, EMIRLS, fct, diffct , nls.lmiter){
+  period = ncol(A)
+  if (nx ==1){
+    pi = param[1:(ng-1)]
+    beta = param[(ng):(ng+sum(nbeta)-1)]
+    sigma = param[-c(1:(ng+sum(nbeta)-1))]
+    pi = c(pi, 1-sum(pi))
+  }else{
+    pi = param[1:(ng*nx)]
+    beta = param[(ng*nx+1):(ng*nx+sum(nbeta))]
+    sigma = param[-c(1:(ng*nx+sum(nbeta)))]
+  }
+  nbetacum = cumsum(c(0, nbeta))
+  tour = 1
+  while (tour<itermax){
+    if (nx == 1){
+      message(paste(-likelihoodEMNL(n, ng, nbeta, beta, sigma, pi, A, Y, TCOV, nw, fct), "\n"))
+    }else{
+      message(paste(-LikelihoodalphaNL(c(pi, beta, log(sigma)), ng, nx, nbeta, n, A, Y, X, TCOV, fct), "\n"))
+    }
+    zk = ftauxNL(pi, beta, sigma, ng, nbeta, n, nw, nx, A, Y, X, TCOV, fct)
+    klas = apply(zk, 1, which.max)
+    zk = matrix(0, n, ng)
+    zk[cbind(1:n, klas)] = 1
+    newbeta = c()
+    newsigma = c()
+    for (k in 1:ng){
+      betatmp = minpack.lm::nls.lm(par = beta[(nbetacum[k]+1):(nbetacum[k+1])], fn = fctbeta, jac = fctbeta.jac,
+                                   Y = Y, A = A, TCOV = TCOV, zk = zk[ ,k],
+                                   period = period, n =n, nbetak = nbeta[k], fct = fct, diffct = diffct,
+                                   control = minpack.lm::nls.lm.control(maxiter = nls.lmiter))$par
+      newbeta = c(newbeta, betatmp)
+      b = 0
+      for (i in 1:n){
+        Mtmp = c()
+        for (t in 1:period){
+          Mtmp = c(Mtmp, Y[i,t]-fait(beta[(nbetacum[k]+1):(nbetacum[k+1])], i, t, A, TCOV, fct))
+        }
+        b = b + zk[i,k]*(t(Mtmp)%*%Mtmp)
+      }
+      newsigma = c(newsigma, sqrt(b/(period*sum(zk[,k]))))
+    }
+    if (nx == 1){
+      pi = colSums(zk)/n
+      stoppi = 0
+      refpi = 0
+    }else{
+      newpi = findtheta(pi, zk, X, n, ng, period, EMIRLS)
+      stoppi = (pi-pi[1:ng])-(newpi-newpi[1:ng])
+      refpi = rep(0, length(stoppi))
+      pi = newpi
+    }
+    tour = tour + 1
+    if (all(abs(c(newbeta, newsigma, stoppi)-c(beta, sigma, refpi))<10**(-6))){
+      tour = itermax + 2
+    }
+    beta = newbeta
+    sigma = newsigma
+  }
+  if (nx == 1){
+    param = c(pi[1:(ng-1)], beta, sigma)
+  }else{
+    param = c(pi, beta, sigma)
+  }
+  return(param)
+}
+
+################################################################################
+# CEM same sigma
+################################################################################
+#' Classification EM algorithm with common sigma
+#'
+#' @inheritParams EMNLSigmaunique
+#' @return Vector of estimated parameters
+#' @export
+CEMNLSigmaunique <- function(param, ng, nx, nbeta, n, A, Y, X, TCOV, nw, itermax, EMIRLS, fct, diffct , nls.lmiter){
+  period = ncol(A)
+  if (nx ==1){
+    pi = param[1:(ng-1)]
+    beta = param[(ng):(ng+sum(nbeta)-1)]
+    sigma = param[-c(1:(ng+sum(nbeta)-1))]
+    pi = c(pi, 1-sum(pi))
+  }else{
+    pi = param[1:(ng*nx)]
+    beta = param[(ng*nx+1):(ng*nx+sum(nbeta))]
+    sigma = param[-c(1:(ng*nx+sum(nbeta)))]
+  }
+  nbetacum = cumsum(c(0, nbeta))
+  tour = 1
+  while (tour<itermax){
+    if (nx == 1){
+      message(paste(-likelihoodEMNL(n, ng, nbeta, beta, sigma, pi, A, Y, TCOV, nw, fct), "\n"))
+    }else{
+      message(paste(-LikelihoodalphaNL(c(pi, beta, log(sigma)), ng, nx, nbeta, n, A, Y, X, TCOV, fct), "\n"))
+    }
+    zk = ftauxNL(pi, beta, sigma, ng, nbeta, n, nw, nx, A, Y, X, TCOV, fct)
+    klas = apply(zk, 1, which.max)
+    zk = matrix(0, n, ng)
+    zk[cbind(1:n, klas)] = 1
+    newbeta = c()
+    for (k in 1:ng){
+      betatmp = minpack.lm::nls.lm(par = beta[(nbetacum[k]+1):(nbetacum[k+1])], fn = fctbeta, jac = fctbeta.jac,
+                                   Y =Y, A = A, TCOV = TCOV, zk = zk[ ,k],
+                                   period = period, n =n, nbetak = nbeta[k], fct = fct, diffct = diffct,
+                                   control = minpack.lm::nls.lm.control(maxiter = nls.lmiter))$par
+      newbeta = c(newbeta, betatmp)
+    }
+    b = 0
+    for (i in 1:n){
+      Mtmp = c()
+      for (t in 1:period){
+        Mtmp = c(Mtmp, Y[i,t]-fait(beta[(nbetacum[k]+1):(nbetacum[k+1])], i, t, A, TCOV, fct))
+      }
+      b = b + zk[i,k]*(t(Mtmp)%*%Mtmp)
+    }
+    newsigma = sqrt(b / (period * sum(zk)))
+    newsigma = rep(newsigma, ng)
+    if (nx == 1){
+      pi = colSums(zk)/n
+      stoppi = 0
+      refpi = 0
+    }else{
+      newpi = findtheta(pi, zk, X, n, ng, period, EMIRLS)
+      stoppi = (pi-pi[1:ng])-(newpi-newpi[1:ng])
+      refpi = rep(0, length(stoppi))
+      pi = newpi
+    }
+    tour = tour + 1
+    if (all(abs(c(newbeta, newsigma, stoppi)-c(beta, sigma, refpi))<10**(-6))){
+      tour = itermax + 2
+    }
+    beta = newbeta
+    sigma = newsigma
+  }
+  if (nx == 1){
+    param = c(pi[1:(ng-1)], beta, sigma)
+  }else{
+    param = c(pi, beta, sigma)
+  }
+  return(param)
+}
+
+
+
+
+
+
+################################################################################
+# ICEM algorithm
+################################################################################
+#' Information matrix for CEM estimates
+#'
+#' @inheritParams IEMNL
+#' @return Vector of standard errors
+#' @export
+ICEMNL <- function(paramEM, ng, nx, nbeta, n, A, Y, X, TCOV, nw, refgr, fct, diffct){
+  nsigma = ng
+  period = ncol(A)
+  if (nx == 1){
+    pi = c(paramEM[1:(ng-1)], 1-sum(paramEM[1:(ng-1)]))
+    beta = paramEM[(ng):(ng+sum(nbeta)-1)]
+    sigma = paramEM[c((ng+sum(nbeta)):(ng+sum(nbeta)+ng-1))]
+    delta = paramEM[-c(1:(ng+sum(nbeta)+ng-1))]
+  }else{
+    theta = c(paramEM[1:(ng*nx)])
+    pi = theta
+    theta = theta - theta[((refgr-1)*nx+1):((refgr-1)*nx+nx)]
+    beta = paramEM[(ng*nx+1):(ng*nx+sum(nbeta))]
+    sigma = paramEM[c((ng*nx+sum(nbeta)+1):(ng*nx+sum(nbeta)+ng))]
+    delta = paramEM[-c(1:(ng*nx+sum(nbeta)+ng))]
+  }
+  taux = ftauxNL(pi, beta, sigma, ng, nbeta, n, nw, nx, A, Y, X, TCOV, fct)
+  klas = apply(taux, 1, which.max)
+  taux = matrix(0, n, ng)
+  taux[cbind(1:n, klas)] = 1
+  period = ncol(A)
+  nbetacum = cumsum(c(0, nbeta))
+  ndelta = rep(nw, ng)
+  ndeltacum = cumsum(c(0, ndelta))
+  ##########################################################################
+  # matrix differential of  Pi**2 or theta**2
+  ##########################################################################
+  if (nx == 1){
+    mPi = matrix(rep(0,(ng-1)**2), ncol = ng-1)
+    for (k in 1:(ng-1)){
+      for (l in 1:(ng-1)){
+        if (k==l){
+          mPi[k,l] = -sum(taux[,k]/pi[k]**2 + taux[,ng]/pi[ng]**2)
+        }
+        else{
+          mPi[k,l] = -sum(taux[,ng]/pi[ng]**2)
+        }
+      }
+    }
+  }else{
+    mPi = matrix(rep(0,(ng*nx)**2), ncol = ng*nx)
+    for (k in 1:ng){
+      for (kp in 1:ng){
+        tmp1 = c()
+        for (l in 1:nx){
+          for (lp in 1:nx){
+            tmp2 = 0
+            if (k==kp){
+              for (i in 1:n){
+                tmpPiik = piik(theta, i, k, ng, X)
+                tmp2 = tmp2 - tmpPiik*(1-tmpPiik)*X[i,l]*X[i,lp]
+              }
+            }else{
+              for (i in 1:n){
+                tmp2 = tmp2 + piik(theta, i, k, ng, X)*piik(theta, i, kp, ng, X)*X[i,l]*X[i,lp]
+              }
+            }
+            tmp1 = c(tmp1, tmp2)
+          }
+        }
+        mPi[((k-1)*nx+1):((k-1)*nx+nx), ((kp-1)*nx+1):((kp-1)*nx+nx)] = matrix(tmp1, ncol = nx, byrow =TRUE)
+      }
+    }
+    mPi = mPi[-c(((refgr-1)*nx+1):((refgr-1)*nx+nx)), ]
+    mPi = mPi[ ,-c(((refgr-1)*nx+1):((refgr-1)*nx+nx))]
+  }
+  ##########################################################################
+  # matrix -B
+  ##########################################################################
+  B = matrix(rep(0, (sum(nbeta)+ng)**2), ncol =  sum(nbeta)+ng)
+  if (nw !=0){
+    for (i in 1:n){
+      for (t in (1:period)){
+        B = B + rbind(cbind(mbetaNL(i,t, ng, nbeta, A, sigma, taux, nbetacum, TCOV, period, delta, ndeltacum, nw),
+                            mbetadeltaNL(i, t, ng, nbeta, A, Y, beta, sigma, taux, nbetacum, TCOV, period, delta, ndeltacum, nw),
+                            mbetasigmaNL(i, t, ng, nbeta, A, Y, beta, sigma, taux, nbetacum, TCOV, period, delta, ndeltacum, nw)),
+                      cbind(t(mbetadeltaNL(i, t, ng, nbeta, A, Y, beta, sigma, taux, nbetacum, TCOV, period, delta, ndeltacum, nw)),
+                            mdeltaNL(i, t, ng, nbeta, A, sigma, taux, nbetacum, TCOV, period, delta, ndeltacum, nw),
+                            mdeltasigmaNL(i, t, ng, nbeta, A, Y, beta, sigma, taux, nbetacum, TCOV, period, delta, ndeltacum, nw)),
+                      cbind(t(mbetasigmaNL(i,t, ng, nbeta, A, Y, beta, sigma, taux, nbetacum, TCOV, period, delta, ndeltacum, nw)),
+                            t(mdeltasigmaNL(i, t, ng, nbeta, A, Y, beta, sigma, taux, nbetacum, TCOV, period, delta, ndeltacum, nw)),
+                            msigmaNL(i, t, ng, nbeta, A, Y, beta, sigma, taux, nbetacum, TCOV, period, delta, ndeltacum, nw, fct)))
+      }
+    }
+  }else{
+    for (i in 1:n){
+      for (t in (1:period)){
+        B = B + rbind(cbind(mbetaNL(i,t, ng, nbeta, A, Y, beta, sigma, taux, nbetacum, TCOV, period, delta, ndeltacum, nw, fct, diffct),
+                            mbetasigmaNL(i,t, ng, nbeta, A, Y, beta, sigma, taux, nbetacum, TCOV, period, delta, ndeltacum, nw, fct, diffct)),
+                      cbind(t(mbetasigmaNL(i,t, ng, nbeta, A, Y, beta, sigma, taux, nbetacum, TCOV, period, delta, ndeltacum, nw, fct, diffct)),
+                            msigmaNL(i,t, ng, nbeta, A, Y, beta, sigma, taux, nbetacum, TCOV, period, delta, ndeltacum, nw, fct)))
+      }
+    }
+  }
+  B = cbind(matrix(rep(0, (ng-1)*nx*(sum(nbeta)+ng+nw*ng)), ncol = (ng-1)*nx),
+            B)
+  B = rbind(cbind(mPi, matrix(rep(0,(sum(nbeta)+ng+nw*ng)*(ng-1)*nx), nrow = (ng-1)*nx)),
+            B)
+  ##########################################################################
+  # matrix cov pi
+  ##########################################################################
+  if (nx == 1){
+    covPi = matrix(rep(0,(ng-1)**2), ncol=ng-1)
+    for (k in 1:(ng-1)){
+      for (l in 1:(ng-1)){
+        tmp = 0
+        if (k==l){
+          for (i in 1:n){
+            tmp = tmp + taux[i,k]*(1-taux[i,k])/pi[k]**2+taux[i,ng]*(1-taux[i,ng])/pi[ng]**2-2*taux[i,k]*taux[i,ng]/(pi[k]*pi[ng])
+          }
+        }else{
+          for (i in 1:n){
+            tmp = tmp - taux[i,k]*taux[i,l]/(pi[k]*pi[l])+taux[i,k]*taux[i,ng]/(pi[ng]*pi[k])+taux[i,l]*taux[i,ng]/(pi[l]*pi[ng])+taux[i,ng]*(1-taux[i,ng])/pi[ng]**2
+          }
+        }
+        covPi[k,l] = tmp
+      }
+    }
+  }else{
+    covPi = matrix(rep(0,((ng-1)*nx)**2), ncol=(ng-1)*nx)
+    for (k in 1:(ng-1)){
+      for (l in 1:(ng-1)){
+        covPitmp = matrix(rep(0, nx**2), ncol =nx)
+        for (p in 1:nx){
+          for (q in 1:nx){
+            tmp = 0
+            if (k==l){
+              for (i in 1:n){
+                tmp = tmp + taux[i,k]*(1-taux[i,k])*X[i,p]*X[i,q]
+              }
+            }else{
+              for (i in 1:n){
+                tmp = tmp - taux[i,k]*taux[i,l]*X[i,p]*X[i,q]
+              }
+            }
+            covPitmp[p, q] = tmp
+          }
+        }
+        covPi[((k-1)*nx+1):((k-1)*nx+nx), ((l-1)*nx+1):((l-1)*nx+nx)] = covPitmp
+      }
+    }
+  }
+  ##########################################################################
+  # matrix cov pi beta
+  ##########################################################################
+  if (nx == 1){
+    covPiBeta = c()
+    for (k in 1:(ng-1)){
+      covPiBeta = cbind(covPiBeta, covPiBetakNL(k, ng, n, nbeta, A, Y, period, beta, sigma, taux, nbetacum, TCOV, delta, ndeltacum, nw, pi, fct, diffct))
+    }
+    rcovPiBetak =  matrix(rep(0,(ng-1)*nbeta[ng]), ncol=nbeta[ng])
+    for  (kp in 1:(ng-1)){
+      for (l in 1:nbeta[ng]){
+        tmp = 0
+        for (i in 1:n){
+          tmp = tmp + BiklNL(i, ng, l, nbeta, A, Y, period, beta, sigma, taux, nbetacum, TCOV, delta, ndeltacum, nw, fct, diffct)*taux[i,ng]*((1-taux[i,ng])/pi[ng]+taux[i,kp]/pi[kp])
+        }
+      }
+      rcovPiBetak[kp,l] =  tmp
+    }
+    covPiBeta = cbind(covPiBeta, rcovPiBetak)
+  }else{
+    covPiBeta = matrix(rep(0,((ng-1)*nx)*sum(nbeta)), ncol=sum(nbeta))
+    for (k in 1:(ng-1)){
+      for (l in 1:ng){
+        covPiBetatmp = matrix(rep(0, nx*nbeta[l]), ncol =nbeta[l])
+        for (p in 1:nx){
+          for (q in 1:nbeta[l]){
+            tmp = 0
+            if (k==l){
+              for (i in 1:n){
+                tmp = tmp + taux[i,k]*(1-taux[i,k])*X[i,p]*BiklNL(i, k, q, nbeta, A, Y, period, beta, sigma, taux, nbetacum, TCOV, delta, ndeltacum, nw, fct, diffct)
+              }
+            }else{
+              for (i in 1:n){
+                tmp = tmp - taux[i,k]*taux[i,l]*X[i,p]*BiklNL(i, l, q, nbeta, A, Y, period, beta, sigma, taux, nbetacum, TCOV, delta, ndeltacum, nw, fct, diffct)
+              }
+            }
+            covPiBetatmp[p, q] = tmp
+          }
+        }
+        covPiBeta[((k-1)*nx+1):((k-1)*nx+nx), (nbetacum[l]+1):(nbetacum[l+1])] = covPiBetatmp
+      }
+    }
+  }
+  if (nw !=0){
+    ##########################################################################
+    # matrix cov pi delta
+    ##########################################################################
+    if (nx == 1 ){
+      covPiDelta = c()
+      for (k in 1:(ng-1)){
+        covPiDelta = cbind(covPiDelta, covPiDeltakNL(k, ng, n, nbeta, A, Y, period, beta, sigma, taux, nbetacum, TCOV, delta, ndeltacum, nw, pi))
+      }
+      rcovPiDeltak =  matrix(rep(0,(ng-1)*nw), ncol=nw)
+      for  (kp in 1:(ng-1)){
+        for (l in 1:nw){
+          tmp = 0
+          for (i in 1:n){
+            tmp = tmp + DiklNL(i, ng, l, nbeta, A, Y, period, beta, sigma, taux, nbetacum, TCOV, delta, ndeltacum, nw)*taux[i,ng]*((1-taux[i,ng])/pi[ng]+taux[i,kp]/pi[kp])
+          }
+        }
+        rcovPiDeltak[kp,l] =  tmp
+      }
+      covPiDelta = cbind(covPiDelta, rcovPiDeltak)
+    }else{
+      covPiDelta = matrix(rep(0,((ng-1)*nx)*sum(delta)), ncol=sum(ndelta))
+      for (k in 1:(ng-1)){
+        for (l in 1:ng){
+          covPiDeltatmp = matrix(rep(0, nx*ndelta[l]), ncol =ndelta[l])
+          for (p in 1:nx){
+            for (q in 1:ndelta[l]){
+              tmp = 0
+              if (k==l){
+                for (i in 1:n){
+                  tmp = tmp + taux[i,k]*(1-taux[i,k])*X[i,p]*DiklNL(i, k, q, nbeta, A, Y, period, beta, sigma, taux, nbetacum, TCOV, delta, ndeltacum, nw)
+                }
+              }else{
+                for (i in 1:n){
+                  tmp = tmp - taux[i,k]*taux[i,l]*X[i,p]*DiklNL(i, l, q, nbeta, A, Y, period, beta, sigma, taux, nbetacum, TCOV, delta, ndeltacum, nw)
+                }
+              }
+              covPiDeltatmp[p, q] = tmp
+            }
+          }
+          covPiDelta[((k-1)*nx+1):((k-1)*nx+nx), (ndeltacum[l]+1):(ndeltacum[l+1])] = covPiDeltatmp
+        }
+      }
+    }
+  }else{
+    covPiDelta = NULL
+  }
+  ##########################################################################
+  # matrix cov pi sigma
+  ##########################################################################
+  if (nx == 1){
+    covPiSigma = matrix(rep(0,(ng-1)*ng), nrow=ng-1)
+    for (k in 1:(ng-1)){
+      for (l in 1:ng){
+        if ( l!=ng){
+          tmp = 0
+          if (k==l){
+            for (i in 1:n){
+              tmp = tmp + taux[i,k]*SikNL(i, k, nbeta, A, Y, period, beta, sigma, taux, nbetacum, TCOV, delta, ndeltacum, nw, fct)*((1-taux[i,k])/pi[k]+taux[i,ng]/pi[ng])
+            }
+          }
+          else{
+            for (i in 1:n){
+              tmp = tmp + taux[i,l]*SikNL(i,l, nbeta, A, Y, period, beta, sigma, taux, nbetacum, TCOV, delta, ndeltacum, nw, fct)/pi[l]*(-taux[i,k]/pi[k]+taux[i,ng]/pi[ng])
+            }
+          }
+        }else{
+          tmp = 0
+          for (i in 1:n){
+            tmp = tmp + taux[i,ng]*SikNL(i, ng, nbeta, A, Y, period, beta, sigma, taux, nbetacum, TCOV, delta, ndeltacum, nw, fct)*((1-taux[i,ng])/pi[ng]+taux[i,k]/pi[k])
+          }
+        }
+        covPiSigma[k,l] = tmp
+      }
+    }
+  }else{
+    covPiSigma = matrix(rep(0,((ng-1)*nx)*ng), ncol=ng)
+    for (k in 1:(ng-1)){
+      for (l in 1:ng){
+        covPiSigmatmp = matrix(rep(0, nx*ng), ncol = ng)
+        for (p in 1:nx){
+          tmp = 0
+          if (k==l){
+            for (i in 1:n){
+              tmp = tmp + taux[i,k]*(1-taux[i,k])*X[i,p]*SikNL(i,k, nbeta, A, Y, period, beta, sigma, taux, nbetacum, TCOV, delta, ndeltacum, nw, fct)
+            }
+          }else{
+            for (i in 1:n){
+              tmp = tmp - taux[i,k]*taux[i,l]*X[i,p]*SikNL(i,l, nbeta, A, Y, period, beta, sigma, taux, nbetacum, TCOV, delta, ndeltacum, nw, fct)
+            }
+          }
+          covPiSigmatmp[p, l] = tmp
+        }
+        covPiSigma[((k-1)*nx+1):((k-1)*nx+nx), 1:ng] = covPiSigmatmp
+      }
+    }
+  }
+  ##########################################################################
+  # matrix cov beta
+  ##########################################################################
+  covBeta = matrix(rep(0,sum(nbeta)**2), ncol = sum(nbeta))
+  for (k in 1:ng){
+    for (l in 1:ng){
+      covBeta[(nbetacum[k]+1):(nbetacum[k+1]),(nbetacum[l]+1):(nbetacum[l+1])] = covBetakBetalNL(k, l, n, nbeta, A, Y, period, beta, sigma, taux, nbetacum, TCOV, delta, ndeltacum, nw, fct, diffct)
+    }
+  }
+  ##########################################################################
+  # Matrix cov beta sigma
+  ##########################################################################
+  covBetaSigma = c()
+  for (k in 1:ng){
+    covBetaSigma = rbind(covBetaSigma, covBetaSigmakNL(k, nbeta, n, ng, A, Y, period, beta, sigma, taux, nbetacum, TCOV, delta, ndeltacum, nw, fct, diffct))
+  }
+  ##########################################################################
+  # Matrix cov sigma
+  ##########################################################################
+  covSigma = matrix(rep(0, ng*ng), ncol =ng)
+  for (k in 1:ng){
+    for (l in 1:ng){
+      tmp = 0
+      if (k==l){
+        for (i in 1:n){
+          tmp = tmp + SikNL(i, k, nbeta, A, Y, period, beta, sigma, taux, nbetacum, TCOV, delta, ndeltacum, nw, fct)**2*taux[i,k]*(1-taux[i,k])
+        }
+      }else{
+        for (i in 1:n){
+          tmp = tmp - SikNL(i, k, nbeta, A, Y, period, beta, sigma, taux, nbetacum, TCOV, delta, ndeltacum, nw, fct)*SikNL(i, l, nbeta, A, Y, period, beta, sigma, taux, nbetacum, TCOV, delta, ndeltacum, nw, fct)*taux[i,k]*taux[i,l]
+        }
+      }
+      covSigma[k,l] = tmp
+    }
+  }
+  ##########################################################################
+  # Matrix of covariance of score function
+  ##########################################################################
+  if (nw !=0){
+    cov =c()
+    cov = cbind(covPi, covPiBeta, covPiDelta, covPiSigma)
+    cov = rbind(cov, cbind(t(covPiBeta), covBeta, covBetaDelta, covBetaSigma))
+    cov = rbind(cov, cbind(t(covPiDelta), t(covBetaDelta), covDelta, covDeltaSigma))
+    cov = rbind(cov, cbind(t(covPiSigma), t(covBetaSigma), t(covDeltaSigma), covSigma))
+  }else{
+    cov =c()
+    cov = cbind(covPi, covPiBeta, covPiSigma)
+    cov = rbind(cov, cbind(t(covPiBeta), covBeta, covBetaSigma))
+    cov = rbind(cov, cbind(t(covPiSigma), t(covBetaSigma), covSigma))
+  }
+  ##########################################################################
+  # Information matrix of Fisher
+  ##########################################################################
+  IEM = - B - cov
+  return(sqrt(diag(solve(IEM))))
+}
+
