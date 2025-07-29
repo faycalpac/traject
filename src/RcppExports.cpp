@@ -517,6 +517,52 @@ RcppExport SEXP _trajeR_likelihoodEM_cpp(SEXP nSEXP, SEXP ngSEXP, SEXP nbetaSEXP
     UNPROTECT(1);
     return rcpp_result_gen;
 }
+// classificationLikelihoodCNORM_cpp
+double classificationLikelihoodCNORM_cpp(int n, int ng, IntegerVector nbeta, NumericVector beta, NumericVector sigma, NumericVector pi, NumericMatrix A, NumericMatrix Y, double ymin, double ymax, Nullable<NumericMatrix> TCOV, Nullable<NumericVector> delta, int nw);
+static SEXP _trajeR_classificationLikelihoodCNORM_cpp_try(SEXP nSEXP, SEXP ngSEXP, SEXP nbetaSEXP, SEXP betaSEXP, SEXP sigmaSEXP, SEXP piSEXP, SEXP ASEXP, SEXP YSEXP, SEXP yminSEXP, SEXP ymaxSEXP, SEXP TCOVSEXP, SEXP deltaSEXP, SEXP nwSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< int >::type ng(ngSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type nbeta(nbetaSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type pi(piSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type A(ASEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< double >::type ymin(yminSEXP);
+    Rcpp::traits::input_parameter< double >::type ymax(ymaxSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericMatrix> >::type TCOV(TCOVSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type delta(deltaSEXP);
+    Rcpp::traits::input_parameter< int >::type nw(nwSEXP);
+    rcpp_result_gen = Rcpp::wrap(classificationLikelihoodCNORM_cpp(n, ng, nbeta, beta, sigma, pi, A, Y, ymin, ymax, TCOV, delta, nw));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _trajeR_classificationLikelihoodCNORM_cpp(SEXP nSEXP, SEXP ngSEXP, SEXP nbetaSEXP, SEXP betaSEXP, SEXP sigmaSEXP, SEXP piSEXP, SEXP ASEXP, SEXP YSEXP, SEXP yminSEXP, SEXP ymaxSEXP, SEXP TCOVSEXP, SEXP deltaSEXP, SEXP nwSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_trajeR_classificationLikelihoodCNORM_cpp_try(nSEXP, ngSEXP, nbetaSEXP, betaSEXP, sigmaSEXP, piSEXP, ASEXP, YSEXP, yminSEXP, ymaxSEXP, TCOVSEXP, deltaSEXP, nwSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
 // ftauxCNORM_cpp
 NumericMatrix ftauxCNORM_cpp(NumericVector pi, NumericVector beta, NumericVector sigma, int ng, IntegerVector nbeta, int n, NumericMatrix A, NumericMatrix Y, double ymin, double ymax, Nullable<NumericMatrix> TCOV, Nullable<NumericVector> delta, int nw, int nx, NumericMatrix X);
 static SEXP _trajeR_ftauxCNORM_cpp_try(SEXP piSEXP, SEXP betaSEXP, SEXP sigmaSEXP, SEXP ngSEXP, SEXP nbetaSEXP, SEXP nSEXP, SEXP ASEXP, SEXP YSEXP, SEXP yminSEXP, SEXP ymaxSEXP, SEXP TCOVSEXP, SEXP deltaSEXP, SEXP nwSEXP, SEXP nxSEXP, SEXP XSEXP) {
@@ -1536,6 +1582,49 @@ RcppExport SEXP _trajeR_EMLOGITIRLS_cpp(SEXP paramSEXP, SEXP ngSEXP, SEXP nxSEXP
     UNPROTECT(1);
     return rcpp_result_gen;
 }
+// classificationLikelihoodLOGIT_cpp
+double classificationLikelihoodLOGIT_cpp(int n, int ng, IntegerVector nbeta, NumericVector beta, NumericVector pi, NumericMatrix A, NumericMatrix Y, Nullable<NumericMatrix> TCOV, Nullable<NumericVector> delta, int nw);
+static SEXP _trajeR_classificationLikelihoodLOGIT_cpp_try(SEXP nSEXP, SEXP ngSEXP, SEXP nbetaSEXP, SEXP betaSEXP, SEXP piSEXP, SEXP ASEXP, SEXP YSEXP, SEXP TCOVSEXP, SEXP deltaSEXP, SEXP nwSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< int >::type ng(ngSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type nbeta(nbetaSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type pi(piSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type A(ASEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericMatrix> >::type TCOV(TCOVSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type delta(deltaSEXP);
+    Rcpp::traits::input_parameter< int >::type nw(nwSEXP);
+    rcpp_result_gen = Rcpp::wrap(classificationLikelihoodLOGIT_cpp(n, ng, nbeta, beta, pi, A, Y, TCOV, delta, nw));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _trajeR_classificationLikelihoodLOGIT_cpp(SEXP nSEXP, SEXP ngSEXP, SEXP nbetaSEXP, SEXP betaSEXP, SEXP piSEXP, SEXP ASEXP, SEXP YSEXP, SEXP TCOVSEXP, SEXP deltaSEXP, SEXP nwSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_trajeR_classificationLikelihoodLOGIT_cpp_try(nSEXP, ngSEXP, nbetaSEXP, betaSEXP, piSEXP, ASEXP, YSEXP, TCOVSEXP, deltaSEXP, nwSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
 // CEMLOGIT_cpp
 NumericVector CEMLOGIT_cpp(NumericVector param, int ng, int nx, int n, IntegerVector nbeta, NumericMatrix A, NumericMatrix Y, NumericMatrix X, Nullable<NumericMatrix> TCOV, int nw, int itermax, bool EMIRLS, int refgr);
 static SEXP _trajeR_CEMLOGIT_cpp_try(SEXP paramSEXP, SEXP ngSEXP, SEXP nxSEXP, SEXP nSEXP, SEXP nbetaSEXP, SEXP ASEXP, SEXP YSEXP, SEXP XSEXP, SEXP TCOVSEXP, SEXP nwSEXP, SEXP itermaxSEXP, SEXP EMIRLSSEXP, SEXP refgrSEXP) {
@@ -1914,6 +2003,51 @@ RcppExport SEXP _trajeR_likelihoodEMZIP_cpp(SEXP nSEXP, SEXP ngSEXP, SEXP nbetaS
     {
         Rcpp::RNGScope rcpp_rngScope_gen;
         rcpp_result_gen = PROTECT(_trajeR_likelihoodEMZIP_cpp_try(nSEXP, ngSEXP, nbetaSEXP, nnuSEXP, betaSEXP, nuSEXP, piSEXP, ASEXP, YSEXP, TCOVSEXP, deltaSEXP, nwSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// classificationLikelihoodZIP_cpp
+double classificationLikelihoodZIP_cpp(int n, int ng, IntegerVector nbeta, IntegerVector nnu, NumericVector beta, NumericVector nu, NumericVector pi, NumericMatrix A, NumericMatrix Y, Nullable<NumericMatrix> TCOV, Nullable<NumericVector> delta, int nw);
+static SEXP _trajeR_classificationLikelihoodZIP_cpp_try(SEXP nSEXP, SEXP ngSEXP, SEXP nbetaSEXP, SEXP nnuSEXP, SEXP betaSEXP, SEXP nuSEXP, SEXP piSEXP, SEXP ASEXP, SEXP YSEXP, SEXP TCOVSEXP, SEXP deltaSEXP, SEXP nwSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< int >::type ng(ngSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type nbeta(nbetaSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type nnu(nnuSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type nu(nuSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type pi(piSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type A(ASEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericMatrix> >::type TCOV(TCOVSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type delta(deltaSEXP);
+    Rcpp::traits::input_parameter< int >::type nw(nwSEXP);
+    rcpp_result_gen = Rcpp::wrap(classificationLikelihoodZIP_cpp(n, ng, nbeta, nnu, beta, nu, pi, A, Y, TCOV, delta, nw));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _trajeR_classificationLikelihoodZIP_cpp(SEXP nSEXP, SEXP ngSEXP, SEXP nbetaSEXP, SEXP nnuSEXP, SEXP betaSEXP, SEXP nuSEXP, SEXP piSEXP, SEXP ASEXP, SEXP YSEXP, SEXP TCOVSEXP, SEXP deltaSEXP, SEXP nwSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_trajeR_classificationLikelihoodZIP_cpp_try(nSEXP, ngSEXP, nbetaSEXP, nnuSEXP, betaSEXP, nuSEXP, piSEXP, ASEXP, YSEXP, TCOVSEXP, deltaSEXP, nwSEXP));
     }
     Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
     if (rcpp_isInterrupt_gen) {
@@ -2739,6 +2873,7 @@ static int _trajeR_RcppExport_validate(const char* sig) {
         signatures.insert("double(*Likelihoodalpha_cpp)(NumericVector,int,int,IntegerVector,int,NumericMatrix,NumericMatrix,NumericMatrix,double,double,Nullable<NumericMatrix>,int,bool)");
         signatures.insert("double(*likelihoodCNORM_cpp)(NumericVector,int,int,IntegerVector,int,NumericMatrix,NumericMatrix,NumericMatrix,double,double,Nullable<NumericMatrix>,int)");
         signatures.insert("double(*likelihoodEM_cpp)(int,int,IntegerVector,NumericVector,NumericVector,NumericVector,NumericMatrix,NumericMatrix,double,double,Nullable<NumericMatrix>,Nullable<NumericVector>,int)");
+        signatures.insert("double(*classificationLikelihoodCNORM_cpp)(int,int,IntegerVector,NumericVector,NumericVector,NumericVector,NumericMatrix,NumericMatrix,double,double,Nullable<NumericMatrix>,Nullable<NumericVector>,int)");
         signatures.insert("NumericMatrix(*ftauxCNORM_cpp)(NumericVector,NumericVector,NumericVector,int,IntegerVector,int,NumericMatrix,NumericMatrix,double,double,Nullable<NumericMatrix>,Nullable<NumericVector>,int,int,NumericMatrix)");
         signatures.insert("NumericVector(*EM_cpp)(NumericVector,int,int,IntegerVector,int,NumericMatrix,NumericMatrix,NumericMatrix,double,double,Nullable<NumericMatrix>,int,int,bool,int)");
         signatures.insert("NumericVector(*CEM_cpp)(NumericVector,int,int,IntegerVector,int,NumericMatrix,NumericMatrix,NumericMatrix,double,double,Nullable<NumericMatrix>,int,int,bool,int)");
@@ -2760,6 +2895,7 @@ static int _trajeR_RcppExport_validate(const char* sig) {
         signatures.insert("double(*likelihoodEMLOGIT_cpp)(int,int,IntegerVector,NumericVector,NumericVector,NumericMatrix,NumericMatrix,Nullable<NumericMatrix>,Nullable<NumericVector>,int)");
         signatures.insert("NumericVector(*EMLOGIT_cpp)(NumericVector,int,int,int,IntegerVector,NumericMatrix,NumericMatrix,NumericMatrix,Nullable<NumericMatrix>,int,int,bool,int)");
         signatures.insert("NumericVector(*EMLOGITIRLS_cpp)(NumericVector,int,int,int,IntegerVector,NumericMatrix,NumericMatrix,NumericMatrix,Nullable<NumericMatrix>,int,int,bool,int)");
+        signatures.insert("double(*classificationLikelihoodLOGIT_cpp)(int,int,IntegerVector,NumericVector,NumericVector,NumericMatrix,NumericMatrix,Nullable<NumericMatrix>,Nullable<NumericVector>,int)");
         signatures.insert("NumericVector(*CEMLOGIT_cpp)(NumericVector,int,int,int,IntegerVector,NumericMatrix,NumericMatrix,NumericMatrix,Nullable<NumericMatrix>,int,int,bool,int)");
         signatures.insert("double(*gkPois_cpp)(List,int,int,IntegerVector,NumericMatrix,NumericMatrix,Nullable<NumericMatrix>,Nullable<List>,int)");
         signatures.insert("NumericVector(*difLbetakPois_cpp)(NumericVector,List,Nullable<List>,int,int,int,IntegerVector,int,NumericMatrix,NumericMatrix,NumericMatrix,Nullable<NumericMatrix>,int)");
@@ -2769,6 +2905,7 @@ static int _trajeR_RcppExport_validate(const char* sig) {
         signatures.insert("NumericVector(*difLZIP_cpp)(NumericVector,int,int,IntegerVector,IntegerVector,int,NumericMatrix,NumericMatrix,NumericMatrix,Nullable<NumericMatrix>,int)");
         signatures.insert("double(*likelihoodZIP_cpp)(NumericVector,int,int,IntegerVector,IntegerVector,int,NumericMatrix,NumericMatrix,NumericMatrix,Nullable<NumericMatrix>,int)");
         signatures.insert("double(*likelihoodEMZIP_cpp)(int,int,IntegerVector,IntegerVector,NumericVector,NumericVector,NumericVector,NumericMatrix,NumericMatrix,Nullable<NumericMatrix>,Nullable<NumericVector>,int)");
+        signatures.insert("double(*classificationLikelihoodZIP_cpp)(int,int,IntegerVector,IntegerVector,NumericVector,NumericVector,NumericVector,NumericMatrix,NumericMatrix,Nullable<NumericMatrix>,Nullable<NumericVector>,int)");
         signatures.insert("NumericMatrix(*ftauxZIP_cpp)(NumericVector,NumericVector,NumericVector,int,IntegerVector,IntegerVector,int,NumericMatrix,NumericMatrix,Nullable<NumericMatrix>,Nullable<NumericVector>,int,int,NumericMatrix)");
         signatures.insert("NumericVector(*EMZIP_cpp)(NumericVector,int,int,int,IntegerVector,IntegerVector,NumericMatrix,NumericMatrix,NumericMatrix,Nullable<NumericMatrix>,int,int,bool,int)");
         signatures.insert("NumericVector(*EMZIPIRLS_cpp)(NumericVector,int,int,int,IntegerVector,IntegerVector,NumericMatrix,NumericMatrix,NumericMatrix,Nullable<NumericMatrix>,int,int,bool,int)");
@@ -2802,6 +2939,7 @@ RcppExport SEXP _trajeR_RcppExport_registerCCallable() {
     R_RegisterCCallable("trajeR", "_trajeR_Likelihoodalpha_cpp", (DL_FUNC)_trajeR_Likelihoodalpha_cpp_try);
     R_RegisterCCallable("trajeR", "_trajeR_likelihoodCNORM_cpp", (DL_FUNC)_trajeR_likelihoodCNORM_cpp_try);
     R_RegisterCCallable("trajeR", "_trajeR_likelihoodEM_cpp", (DL_FUNC)_trajeR_likelihoodEM_cpp_try);
+    R_RegisterCCallable("trajeR", "_trajeR_classificationLikelihoodCNORM_cpp", (DL_FUNC)_trajeR_classificationLikelihoodCNORM_cpp_try);
     R_RegisterCCallable("trajeR", "_trajeR_ftauxCNORM_cpp", (DL_FUNC)_trajeR_ftauxCNORM_cpp_try);
     R_RegisterCCallable("trajeR", "_trajeR_EM_cpp", (DL_FUNC)_trajeR_EM_cpp_try);
     R_RegisterCCallable("trajeR", "_trajeR_CEM_cpp", (DL_FUNC)_trajeR_CEM_cpp_try);
@@ -2823,6 +2961,7 @@ RcppExport SEXP _trajeR_RcppExport_registerCCallable() {
     R_RegisterCCallable("trajeR", "_trajeR_likelihoodEMLOGIT_cpp", (DL_FUNC)_trajeR_likelihoodEMLOGIT_cpp_try);
     R_RegisterCCallable("trajeR", "_trajeR_EMLOGIT_cpp", (DL_FUNC)_trajeR_EMLOGIT_cpp_try);
     R_RegisterCCallable("trajeR", "_trajeR_EMLOGITIRLS_cpp", (DL_FUNC)_trajeR_EMLOGITIRLS_cpp_try);
+    R_RegisterCCallable("trajeR", "_trajeR_classificationLikelihoodLOGIT_cpp", (DL_FUNC)_trajeR_classificationLikelihoodLOGIT_cpp_try);
     R_RegisterCCallable("trajeR", "_trajeR_CEMLOGIT_cpp", (DL_FUNC)_trajeR_CEMLOGIT_cpp_try);
     R_RegisterCCallable("trajeR", "_trajeR_gkPois_cpp", (DL_FUNC)_trajeR_gkPois_cpp_try);
     R_RegisterCCallable("trajeR", "_trajeR_difLbetakPois_cpp", (DL_FUNC)_trajeR_difLbetakPois_cpp_try);
@@ -2832,6 +2971,7 @@ RcppExport SEXP _trajeR_RcppExport_registerCCallable() {
     R_RegisterCCallable("trajeR", "_trajeR_difLZIP_cpp", (DL_FUNC)_trajeR_difLZIP_cpp_try);
     R_RegisterCCallable("trajeR", "_trajeR_likelihoodZIP_cpp", (DL_FUNC)_trajeR_likelihoodZIP_cpp_try);
     R_RegisterCCallable("trajeR", "_trajeR_likelihoodEMZIP_cpp", (DL_FUNC)_trajeR_likelihoodEMZIP_cpp_try);
+    R_RegisterCCallable("trajeR", "_trajeR_classificationLikelihoodZIP_cpp", (DL_FUNC)_trajeR_classificationLikelihoodZIP_cpp_try);
     R_RegisterCCallable("trajeR", "_trajeR_ftauxZIP_cpp", (DL_FUNC)_trajeR_ftauxZIP_cpp_try);
     R_RegisterCCallable("trajeR", "_trajeR_EMZIP_cpp", (DL_FUNC)_trajeR_EMZIP_cpp_try);
     R_RegisterCCallable("trajeR", "_trajeR_EMZIPIRLS_cpp", (DL_FUNC)_trajeR_EMZIPIRLS_cpp_try);
@@ -2864,6 +3004,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_trajeR_Likelihoodalpha_cpp", (DL_FUNC) &_trajeR_Likelihoodalpha_cpp, 13},
     {"_trajeR_likelihoodCNORM_cpp", (DL_FUNC) &_trajeR_likelihoodCNORM_cpp, 12},
     {"_trajeR_likelihoodEM_cpp", (DL_FUNC) &_trajeR_likelihoodEM_cpp, 13},
+    {"_trajeR_classificationLikelihoodCNORM_cpp", (DL_FUNC) &_trajeR_classificationLikelihoodCNORM_cpp, 13},
     {"_trajeR_ftauxCNORM_cpp", (DL_FUNC) &_trajeR_ftauxCNORM_cpp, 15},
     {"_trajeR_EM_cpp", (DL_FUNC) &_trajeR_EM_cpp, 15},
     {"_trajeR_CEM_cpp", (DL_FUNC) &_trajeR_CEM_cpp, 15},
@@ -2889,6 +3030,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_trajeR_likelihoodEMLOGIT_cpp", (DL_FUNC) &_trajeR_likelihoodEMLOGIT_cpp, 10},
     {"_trajeR_EMLOGIT_cpp", (DL_FUNC) &_trajeR_EMLOGIT_cpp, 13},
     {"_trajeR_EMLOGITIRLS_cpp", (DL_FUNC) &_trajeR_EMLOGITIRLS_cpp, 13},
+    {"_trajeR_classificationLikelihoodLOGIT_cpp", (DL_FUNC) &_trajeR_classificationLikelihoodLOGIT_cpp, 10},
     {"_trajeR_CEMLOGIT_cpp", (DL_FUNC) &_trajeR_CEMLOGIT_cpp, 13},
     {"_trajeR_gkPois_cpp", (DL_FUNC) &_trajeR_gkPois_cpp, 9},
     {"_trajeR_difLbetakPois_cpp", (DL_FUNC) &_trajeR_difLbetakPois_cpp, 13},
@@ -2898,6 +3040,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_trajeR_difLZIP_cpp", (DL_FUNC) &_trajeR_difLZIP_cpp, 11},
     {"_trajeR_likelihoodZIP_cpp", (DL_FUNC) &_trajeR_likelihoodZIP_cpp, 11},
     {"_trajeR_likelihoodEMZIP_cpp", (DL_FUNC) &_trajeR_likelihoodEMZIP_cpp, 12},
+    {"_trajeR_classificationLikelihoodZIP_cpp", (DL_FUNC) &_trajeR_classificationLikelihoodZIP_cpp, 12},
     {"_trajeR_ftauxZIP_cpp", (DL_FUNC) &_trajeR_ftauxZIP_cpp, 14},
     {"_trajeR_EMZIP_cpp", (DL_FUNC) &_trajeR_EMZIP_cpp, 14},
     {"_trajeR_EMZIPIRLS_cpp", (DL_FUNC) &_trajeR_EMZIPIRLS_cpp, 14},
