@@ -1186,6 +1186,8 @@ NumericVector EMZIP_cpp(NumericVector param,
     // E-step
     NumericMatrix zk = ftauxZIP_cpp(pi, beta, nu, ng, nbeta, nnu, n, A, Y, TCOV, delta, nw, nx, X);
     
+    //Rcpp::Rcout << "zk avant classification:" << std::endl;
+    //Rcpp::Rcout << zk << std::endl;
     
     NumericVector newbeta;
     NumericVector newnu;
@@ -1707,7 +1709,7 @@ NumericVector CEMZIP_cpp(NumericVector param,
   std::partial_sum(nnu.begin(), nnu.end(), nnucum.begin());
   nnucum.push_front(0);
   IntegerVector ndeltacum;
-  
+//cout << "Hello World!";
   if (nx == 1){
     pi = param[Range(0,ng-2)];
     beta = param[Range(ng-1,ng+sum(nbeta)-2)];
@@ -1755,6 +1757,8 @@ NumericVector CEMZIP_cpp(NumericVector param,
       }
       for(int k=0;k<ng;++k){ zk(i,k) = (k==imax)?1.0:0.0; }
     }
+    //Rcpp::Rcout << "zk avant classification:" << std::endl;
+    //Rcpp::Rcout << zk << std::endl;
     
     NumericVector newbeta;
     NumericVector newnu;
