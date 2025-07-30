@@ -1,0 +1,107 @@
+
+```{r}
+
+# Load package and dataset
+library(trajeR)
+# Charger les données
+data("dataNORM01")  # ou ton propre objet df
+
+# Décomposition des variables
+Y  <- dataNORM01[, 1:5]    # Y1 à Y5
+A  <- dataNORM01[, 6:10]   # T1 à T5
+X  <- dataNORM01[, 11:12]  # X1 et X2 pour Risk
+gr <- dataNORM01[, 16]     # cluster vrai
+
+# -------------------------
+# Estimation des deux modèles
+# -------------------------
+library(trajeR)
+
+fit_em <- trajeR(Y, A, Risk = X, ng = 3, degre = c(2, 2, 2),
+                 Model = "CNORM", Method = "EM", itermax = 100)
+
+fit_cem <- trajeR(Y, A, Risk = X, ng = 3, degre = c(2, 2, 2),
+                  Model = "CNORM", Method = "CEM", itermax = 100)
+
+# -------------------------
+# Récupérer les affectations
+# -------------------------
+assign_em  <- (GroupProb(fit_em,  Y, A))
+assign_cem <- (GroupProb(fit_cem, Y, A))
+
+
+```
+
+
+
+
+
+
+```{r}
+ng <- length(unique(gr))
+colors <- c("red", "blue", "darkgreen")
+tgrid <- 1:ncol(Y)  # ou colMeans(A), si non constant
+
+# ============ PARTIE 1 : chaque groupe séparé ============
+par(mfrow = c(1, 3))  # 1 ligne, 3 colonnes
+
+for (g in 1:ng) {
+  idx <- which(gr == g)
+  matplot(t(A[idx, ]), t(Y[idx, ]), type = "l", lty = 1, col = colors[g],
+          xlab = "Temps", ylab = "Y", main = paste("Groupe", g))
+  lines(colMeans(A[idx, ]), colMeans(Y[idx, ]), col = "black", lwd = 3)
+}
+
+
+
+```
+
+
+
+```{r}
+
+
+par(mfrow = c(1, 1))  # retour à 1 seul plot
+
+matplot(t(A), t(Y), type = "n", xlab = "Temps", ylab = "Y",
+        main = "Trajectoires individuelles + moyennes")
+for (g in 1:ng) {
+  idx <- which(gr == g)
+  matlines(t(A[idx, ]), t(Y[idx, ]), lty = 1, col = colors[g])
+  lines(colMeans(A[idx, ]), colMeans(Y[idx, ]), col = "black", lwd = 3)
+}
+
+```
+
+
+
+```{r}
+# Préparation
+ng <- length(unique(gr))
+colors <- c("red", "blue", "darkgreen")
+tgrid <- 1:ncol(Y)  # ou colMeans(A), si nécessaire
+
+# Courbes moyennes empiriques
+Ymean_emp <- matrix(NA, nrow = ng, ncol = ncol(Y))
+for (g in 1:ng) {
+  idx <- which(gr == g)
+  Ymean_emp[g, ] <- colMeans(Y[idx, , drop = FALSE])
+}
+
+# Affichage en 3 plots côte à côte
+par(mfrow = c(1, 3))  # 1 ligne, 3 colonnes
+
+# Plot EM
+plotrajeR(fit_em)
+
+# Plot CEM
+plotrajeR(fit_cem)
+
+# Courbes empiriques
+matplot(tgrid, t(Ymean_emp), type = "l", lty = 1, col = colors,
+        lwd = 2, xlab = "Temps", ylab = "Y",
+        main = "Courbes moyennes empiriques")
+
+
+
+```
