@@ -147,7 +147,8 @@ print.Trajectory.CNORM <- function(x, ...) {
     cat("Method : Likelihood \n \n")
   } else if (Obj$Method == "EM") {
     cat("Method : Expectation-maximization \n \n")
-  } else {
+  } else if (Obj$Method == "CEM") {
+    cat("Method : Classification EM \n \n")} else {
     cat("Method : Expectation-maximization with IWRLS\n \n")
   }
   esp <- 1
@@ -202,7 +203,12 @@ print.Trajectory.CNORM <- function(x, ...) {
     }
   }
   writeLines(sep1)
-  cat("Likelihood :", Obj$Likelihood)
+  if (Obj$Method == "CEM") {
+    cat("Classification log-likelihood :", Obj$Likelihood)
+  } else {
+    cat("Likelihood :", Obj$Likelihood)
+  }
+
 }
 ###################################################################################
 # modification of print's method for class trajectory.ZIP
@@ -361,7 +367,12 @@ print.Trajectory.ZIP <- function(x, ...) {
     }
   }
   writeLines(sep1)
-  cat("Likelihood :", Obj$Likelihood)
+  if (Obj$Method == "CEM") {
+    cat("Classification log-likelihood :", Obj$Likelihood)
+  } else {
+    cat("Likelihood :", Obj$Likelihood)
+  }
+
 }
 ###################################################################################
 # modification of print's method for class trajectory.LOGIT
@@ -513,7 +524,12 @@ print.Trajectory.LOGIT <- function(x, ...) {
     }
   }
   writeLines(sep1)
-  cat("Likelihood :", Obj$Likelihood)
+  if (Obj$Method == "CEM") {
+    cat("Classification log-likelihood :", Obj$Likelihood)
+  } else {
+    cat("Likelihood :", Obj$Likelihood)
+  }
+
 }
 ###################################################################################
 # modification of print's method for class trajectory.POIS
@@ -829,7 +845,12 @@ print.Trajectory.NL <- function(x, ...) {
     }
   }
   writeLines(sep1)
-  cat("Likelihood :", Obj$Likelihood)
+  if (Obj$Method == "CEM") {
+    cat("Classification log-likelihood :", Obj$Likelihood)
+  } else {
+    cat("Likelihood :", Obj$Likelihood)
+  }
+
 }
 ###################################################################################
 # modification of print's method for class trajectory.BETA
