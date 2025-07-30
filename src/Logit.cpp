@@ -1089,6 +1089,7 @@ NumericVector CEMLOGIT_cpp(NumericVector param,
     if (nx == 1){
       Rprintf("iter %3d value ", tour);
       Rprintf("%.6f\n", -classificationLikelihoodLOGIT_cpp(n, ng, nbeta, beta, pi, A, Y, TCOV, delta, nw));
+      
     }else{
       // a modifier
       Rprintf("iter %3d value ", tour);
